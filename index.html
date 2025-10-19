@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snack Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            touch-action: none;
+            padding: 10px;
+            color: white;
+        }
+        
+        /* Header Styles */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 10px;
+        }
+        
+        .exit-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .settings-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .game-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        /* Game Container */
+        .game-container {
+            position: relative;
+            margin: 10px 0;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #333;
+            background: #000;
+            border-radius: 15px;
+            display: block;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .score-container {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .score {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        /* Game Controls */
+        .game-controls {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .control-btn.pause {
+            background: #ffa502;
+        }
+        
+        .control-btn.reset {
+            background: #e74c3c;
+        }
+        
+        /* Mobile Controls */
+        .mobile-controls {
+            margin: 15px 0;
+            display: grid;
+            grid-template-areas: 
+                ". up ."
+                "left . right"
+                ". down .";
+            gap: 15px;
+        }
+        
+        .direction-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            color: white;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .up { grid-area: up; }
+        .down { grid-area: down; }
+        .left { grid-area: left; }
+        .right { grid-area: right; }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            min-width: 60px;
+        }
+        
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-title {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 20px;
+        }
+        
+        .close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        /* Settings Styles */
+        .setting-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .setting-label {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        /* Leaderboard Styles */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+        
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        /* Profile Styles */
+        .profile-info {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: #667eea;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+        }
+        
+        /* Wallet Styles */
+        .balance {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="exit-btn" onclick="exitGame()">Exit</button>
+        <div class="game-title">Snack Game</div>
+        <button class="settings-btn" onclick="openSettings()">Settings</button>
+    </div>
+    
+    <!-- Score -->
+    <div class="score-container">
+        <div class="score">Score: <span id="score">0</span></div>
+    </div>
+    
+    <!-- Game Canvas -->
+    <div class="game-container">
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+    </div>
+    
+    <!-- Game Controls -->
+    <div class="game-controls">
+        <button class="control-btn" onclick="startGame()">Start</button>
+        <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
+        <button class="control-btn reset" onclick="resetGame()">Reset</button>
+    </div>
+    
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+        <button class="direction-btn up" onclick="changeDirection('up')">↑</button>
+        <button class="direction-btn left" onclick="changeDirection('left')">←</button>
+        <button class="direction-btn down" onclick="changeDirection('down')">↓</button>
+        <button class="direction-btn right" onclick="changeDirection('right')">→</button>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showSection('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Home</div>
+        </div>
+        <div class="nav-item" onclick="showSection('leaderboard')">
+            <div class="nav-icon">🏆</div>
+            <div class="nav-label">Leaderboard</div>
+        </div>
+        <div class="nav-item" onclick="showSection('profile')">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Profile</div>
+        </div>
+        <div class="nav-item" onclick="showSection('wallet')">
+            <div class="nav-icon">💰</div>
+            <div class="nav-label">Wallet</div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">🏆 Leaderboard</h2>
+            <div id="leaderboardList">
+                <!-- Leaderboard items will be generated here -->
+            </div>
+            <button class="close-modal" onclick="closeModal('leaderboardModal')">Close</button>
+        </div>
+    </div>
+    
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">👤 Profile</h2>
+            <div class="profile-info">
+                <div class="avatar">👤</div>
+                <div id="userName">User Name</div>
+                <div id="userLevel">Level: 1</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">Games Played</div>
+                <div id="gamesPlayed">0</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">High Score</div>
+                <div id="profileHighScore">0</div>
+            </div>
+            <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
+        </div>
+    </div>
+    
+    <div id="walletModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">💰 Wallet</h2>
+            <div class="balance" id="walletBalance">0 coins</div>
+            <div class="setting-item">
+                <div class="setting-label">Total Earned</div>
+                <div id="totalEarned">0 coins</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">Total Spent</div>
+                <div id="totalSpent">0 coins</div>
+            </div>
+            <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
+        </div>
+    </div>
+    
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">⚙️ Settings</h2>
+            <div class="setting-item">
+                <div class="setting-label">Game Speed</div>
+                <input type="range" min="50" max="200" value="120" class="slider" id="speedSlider" onchange="changeGameSpeed(this.value)">
+                <div id="speedValue">Medium</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">Sound Effects</div>
+                <label>
+                    <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
+                    Enable Sound
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">Vibration</div>
+                <label>
+                    <input type="checkbox" id="vibrationToggle" checked onchange="toggleVibration(this.checked)">
+                    Enable Vibration
+                </label>
+            </div>
+            <button class="close-modal" onclick="closeModal('settingsModal')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Mini App initialization
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 15;
+        const tileCountX = canvas.width / gridSize;
+        const tileCountY = canvas.height / gridSize;
+        
+        let snake = [];
+        let food = {};
+        let dx = gridSize;
+        let dy = 0;
+        let score = 0;
+        let gameInterval;
+        let isPaused = false;
+        let gameStarted = false;
+        
+        // User data
+        let userData = {
+            highScore: localStorage.getItem('snakeHighScore') || 0,
+            gamesPlayed: localStorage.getItem('gamesPlayed') || 0,
+            walletBalance: localStorage.getItem('walletBalance') || 100,
+            totalEarned: localStorage.getItem('totalEarned') || 100,
+            totalSpent: localStorage.getItem('totalSpent') || 0,
+            userName: 'Player' + Math.floor(Math.random() * 1000)
+        };
+        
+        // Initialize game
+        function initGame() {
+            snake = [
+                {x: 5 * gridSize, y: 5 * gridSize},
+                {x: 4 * gridSize, y: 5 * gridSize},
+                {x: 3 * gridSize, y: 5 * gridSize}
+            ];
+            generateFood();
+            score = 0;
+            updateScore();
+            dx = gridSize;
+            dy = 0;
+            gameStarted = true;
+            
+            // Update games played
+            userData.gamesPlayed++;
+            localStorage.setItem('gamesPlayed', userData.gamesPlayed);
+        }
+        
+        // Generate food at random position
+        function generateFood() {
+            let possiblePositions = [];
+            for(let x = 0; x < tileCountX; x++) {
+                for(let y = 0; y < tileCountY; y++) {
+                    possiblePositions.push({x: x * gridSize, y: y * gridSize});
+                }
+            }
+            
+            for(let segment of snake) {
+                possiblePositions = possiblePositions.filter(pos => 
+                    !(pos.x === segment.x && pos.y === segment.y)
+                );
+            }
+            
+            if(possiblePositions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * possiblePositions.length);
+                food = possiblePositions[randomIndex];
+            } else {
+                gameWon();
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if(isPaused || !gameStarted) return;
+            
+            moveSnake();
+            if(checkCollision()) {
+                gameOver();
+                return;
+            }
+            
+            drawGame();
+        }
+        
+        // Move snake
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+            
+            const ateFood = (
+                head.x < food.x + gridSize &&
+                head.x + gridSize > food.x &&
+                head.y < food.y + gridSize &&
+                head.y + gridSize > food.y
+            );
+            
+            if(ateFood) {
+                score += 10;
+                updateScore();
+                
+                // Add coins to wallet
+                userData.walletBalance += 5;
+                userData.totalEarned += 5;
+                localStorage.setItem('walletBalance', userData.walletBalance);
+                localStorage.setItem('totalEarned', userData.totalEarned);
+                
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+        
+        // Check collision
+        function checkCollision() {
+            const head = snake[0];
+            
+            if(head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                return true;
+            }
+            
+            for(let i = 1; i < snake.length; i++) {
+                if(head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Draw game
+        function drawGame() {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+            for(let x = 0; x < canvas.width; x += gridSize) {
+                for(let y = 0; y < canvas.height; y += gridSize) {
+                    ctx.strokeRect(x, y, gridSize, gridSize);
+                }
+            }
+            
+            for(let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                if(i === 0) {
+                    ctx.fillStyle = '#4CAF50';
+                } else {
+                    const intensity = 200 - (i * 5);
+                    ctx.fillStyle = `rgb(76, ${Math.max(100, intensity)}, 50)`;
+                }
+                ctx.fillRect(segment.x + 1, segment.y + 1, gridSize - 2, gridSize - 2);
+                
+                if(i === 0) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(segment.x + 4, segment.y + 4, 3, 3);
+                    ctx.fillRect(segment.x + gridSize - 7, segment.y + 4, 3, 3);
+                }
+            }
+            
+            ctx.fillStyle = '#FF5252';
+            ctx.beginPath();
+            const centerX = food.x + gridSize/2;
+            const centerY = food.y + gridSize/2;
+            const radius = gridSize/2 - 1;
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FF8A80';
+            ctx.beginPath();
+            ctx.arc(centerX - 2, centerY - 2, radius/3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        // Change direction
+        function changeDirection(direction) {
+            if(isPaused) return;
+            
+            const movingUp = dy === -gridSize;
+            const movingDown = dy === gridSize;
+            const movingLeft = dx === -gridSize;
+            const movingRight = dx === gridSize;
+            
+            switch(direction) {
+                case 'up':
+                    if(!movingDown) {
+                        dx = 0;
+                        dy = -gridSize;
+                    }
+                    break;
+                case 'down':
+                    if(!movingUp) {
+                        dx = 0;
+                        dy = gridSize;
+                    }
+                    break;
+                case 'left':
+                    if(!movingRight) {
+                        dx = -gridSize;
+                        dy = 0;
+                    }
+                    break;
+                case 'right':
+                    if(!movingLeft) {
+                        dx = gridSize;
+                        dy = 0;
+                    }
+                    break;
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            clearInterval(gameInterval);
+            gameStarted = false;
+            
+            // Update high score
+            if(score > userData.highScore) {
+                userData.highScore = score;
+                localStorage.setItem('snakeHighScore', userData.highScore);
+            }
+            
+            alert(`Game Over! Your score: ${score}`);
+        }
+        
+        // Game won
+        function gameWon() {
+            clearInterval(gameInterval);
+            gameStarted = false;
+            alert(`Congratulations! You won! Final score: ${score}`);
+        }
+        
+        // Update score display
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+        
+        // Start game
+        function startGame() {
+            if(gameInterval) {
+                clearInterval(gameInterval);
+            }
+            initGame();
+            isPaused = false;
+            document.getElementById('pauseBtn').textContent = 'Pause';
+            gameInterval = setInterval(gameLoop, 120);
+        }
+        
+        // Pause game
+        function pauseGame() {
+            if(!gameStarted) return;
+            
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
+        }
+        
+        // Reset game
+        function resetGame() {
+            clearInterval(gameInterval);
+            gameStarted = false;
+            isPaused = false;
+            initGame();
+            drawGame();
+            document.getElementById('pauseBtn').textContent = 'Pause';
+        }
+        
+        // Navigation functions
+        function showSection(section) {
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show corresponding modal
+            if(section !== 'home') {
+                openModal(section + 'Modal');
+                
+                // Update modal content
+                if(section === 'profile') {
+                    updateProfileModal();
+                } else if(section === 'wallet') {
+                    updateWalletModal();
+                } else if(section === 'leaderboard') {
+                    updateLeaderboard();
+                }
+            }
+        }
+        
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function openSettings() {
+            openModal('settingsModal');
+        }
+        
+        function exitGame() {
+            if(confirm('Are you sure you want to exit?')) {
+                tg.close();
+            }
+        }
+        
+        // Update modals
+        function updateProfileModal() {
+            document.getElementById('userName').textContent = userData.userName;
+            document.getElementById('userLevel').textContent = 'Level: ' + Math.floor(userData.gamesPlayed / 10 + 1);
+            document.getElementById('gamesPlayed').textContent = userData.gamesPlayed;
+            document.getElementById('profileHighScore').textContent = userData.highScore;
+        }
+        
+        function updateWalletModal() {
+            document.getElementById('walletBalance').textContent = userData.walletBalance + ' coins';
+            document.getElementById('totalEarned').textContent = userData.totalEarned + ' coins';
+            document.getElementById('totalSpent').textContent = userData.totalSpent + ' coins';
+        }
+        
+        function updateLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            
+            if(leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet!</div>';
+            } else {
+                leaderboardList.innerHTML = leaderboard.slice(0, 10).map((player, index) => `
+                    <div class="leaderboard-item">
+                        <div class="rank">#${index + 1}</div>
+                        <div>${player.name}</div>
+                        <div>${player.score}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // Settings functions
+        function changeGameSpeed(value) {
+            const speedValue = document.getElementById('speedValue');
+            let speedText = '';
+            let intervalSpeed = 0;
+            
+            if(value < 80) {
+                speedText = 'Fast';
+                intervalSpeed = 80;
+            } else if(value < 120) {
+                speedText = 'Medium';
+                intervalSpeed = 120;
+            } else {
+                speedText = 'Slow';
+                intervalSpeed = 160;
+            }
+            
+            speedValue.textContent = speedText;
+            
+            if(gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, intervalSpeed);
+            }
+        }
+        
+        function toggleSound(enabled) {
+            // Sound implementation would go here
+            console.log('Sound:', enabled ? 'ON' : 'OFF');
+        }
+        
+        function toggleVibration(enabled) {
+            // Vibration implementation would go here
+            console.log('Vibration:', enabled ? 'ON' : 'OFF');
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if(isPaused || !gameStarted) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    changeDirection('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    changeDirection('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    changeDirection('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    changeDirection('right');
+                    break;
+            }
+        });
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if(!touchStartX || !touchStartY || !gameStarted || isPaused) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+            
+            if(Math.abs(diffX) > Math.abs(diffY)) {
+                if(diffX > 0) {
+                    changeDirection('left');
+                } else {
+                    changeDirection('right');
+                }
+            } else {
+                if(diffY > 0) {
+                    changeDirection('up');
+                } else {
+                    changeDirection('down');
+                }
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Initialize on load
+        window.onload = function() {
+            initGame();
+            drawGame();
+            updateProfileModal();
+            updateWalletModal();
+            updateLeaderboard();
+        };
+    </script>
+</body>
+</html>

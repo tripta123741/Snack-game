@@ -24,6 +24,48 @@
             color: white;
         }
         
+        /* Login Styles */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 250px;
+        }
+        
+        .login-info {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        /* Main Game Container */
+        .game-main-container {
+            width: 100%;
+            display: none;
+        }
+        
         /* Header Styles */
         .header {
             width: 100%;
@@ -326,19 +368,6 @@
             font-size: 16px;
         }
         
-        .price-change {
-            font-size: 12px;
-            margin-left: 5px;
-        }
-        
-        .price-up {
-            color: #27ae60;
-        }
-        
-        .price-down {
-            color: #e74c3c;
-        }
-        
         .buy-btn {
             background: #4CAF50;
             color: white;
@@ -350,17 +379,17 @@
             font-weight: bold;
         }
         
-        .buy-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .market-info {
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-            margin-top: 10px;
-            font-style: italic;
+        .wallet-connect-btn {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
         }
 
         .bonus-indicator {
@@ -410,170 +439,180 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <button class="exit-btn" onclick="exitGame()">Exit</button>
-        <div class="game-title">Snack Game</div>
-        <button class="settings-btn" onclick="openSettings()">Settings</button>
-    </div>
-    
-    <!-- Score -->
-    <div class="score-container">
-        <div class="score">Score: <span id="score">0</span></div>
-    </div>
-    
-    <!-- Game Canvas -->
-    <div class="game-container">
-        <canvas id="gameCanvas" width="300" height="300"></canvas>
-        <div id="bonusIndicators"></div>
-        <div id="gamePausedOverlay" class="game-paused-overlay" style="display: none;">
-            Game Paused<br>
-            <small>Press Start or Resume to continue</small>
+    <!-- Login Screen -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-title">🐍 Snack Game</div>
+        <p style="margin-bottom: 30px; font-size: 16px;">Login with your Telegram account to play</p>
+        
+        <button class="login-btn" onclick="loginWithTelegram()">
+            📱 Login with Telegram
+        </button>
+        
+        <div class="login-info">
+            You need to login through Telegram to play this game and access all features.
         </div>
     </div>
-    
-    <!-- Game Controls -->
-    <div class="game-controls">
-        <button class="control-btn" onclick="startGame()">Start Game</button>
-        <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
-        <button class="control-btn reset" onclick="resetGame()">Reset</button>
-    </div>
-    
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="showSection('home')">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-label">Home</div>
+
+    <!-- Main Game Container -->
+    <div id="gameMainContainer" class="game-main-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="exit-btn" onclick="exitGame()">Exit</button>
+            <div class="game-title">Snack Game</div>
+            <button class="settings-btn" onclick="openSettings()">Settings</button>
         </div>
-        <div class="nav-item" onclick="showSection('leaderboard')">
-            <div class="nav-icon">🏆</div>
-            <div class="nav-label">Leaderboard</div>
+        
+        <!-- Score -->
+        <div class="score-container">
+            <div class="score">Score: <span id="score">0</span></div>
         </div>
-        <div class="nav-item" onclick="showSection('profile')">
-            <div class="nav-icon">👤</div>
-            <div class="nav-label">Profile</div>
+        
+        <!-- Game Canvas -->
+        <div class="game-container">
+            <canvas id="gameCanvas" width="300" height="300"></canvas>
+            <div id="bonusIndicators"></div>
+            <div id="gamePausedOverlay" class="game-paused-overlay" style="display: none;">
+                Game Paused<br>
+                <small>Press Start or Resume to continue</small>
+            </div>
         </div>
-        <div class="nav-item" onclick="showSection('wallet')">
-            <div class="nav-icon">💰</div>
-            <div class="nav-label">Store</div>
+        
+        <!-- Game Controls -->
+        <div class="game-controls">
+            <button class="control-btn" onclick="startGame()">Start Game</button>
+            <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
+            <button class="control-btn reset" onclick="resetGame()">Reset</button>
         </div>
-    </div>
-    
-    <!-- Modals -->
-    <div id="leaderboardModal" class="modal">
-        <div class="modal-content">
-            <h2 class="modal-title">🏆 Leaderboard</h2>
-            <div id="leaderboardList">
-                <!-- Leaderboard items will be generated here -->
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showSection('home')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
             </div>
-            <button class="close-modal" onclick="closeModal('leaderboardModal')">Close</button>
+            <div class="nav-item" onclick="showSection('leaderboard')">
+                <div class="nav-icon">🏆</div>
+                <div class="nav-label">Leaderboard</div>
+            </div>
+            <div class="nav-item" onclick="showSection('profile')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-label">Profile</div>
+            </div>
+            <div class="nav-item" onclick="showSection('wallet')">
+                <div class="nav-icon">💰</div>
+                <div class="nav-label">Store</div>
+            </div>
         </div>
-    </div>
-    
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <h2 class="modal-title">👤 Profile</h2>
-            <div class="profile-info">
-                <div class="avatar">👤</div>
-                <div id="userName">Loading...</div>
-                <div id="userLevel">Level: 1</div>
+        
+        <!-- Modals -->
+        <div id="leaderboardModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">🏆 Leaderboard</h2>
+                <div id="leaderboardList">
+                    <div style="text-align: center; color: #666; padding: 20px;">Loading leaderboard...</div>
+                </div>
+                <button class="close-modal" onclick="closeModal('leaderboardModal')">Close</button>
             </div>
-            <div class="setting-item">
-                <div class="setting-label">Games Played</div>
-                <div id="gamesPlayed">0</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-label">High Score</div>
-                <div id="profileHighScore">0</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-label">Telegram ID</div>
-                <div id="telegramId">Not available</div>
-            </div>
-            <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
         </div>
-    </div>
-    
-    <div id="walletModal" class="modal">
-        <div class="modal-content">
-            <h2 class="modal-title">💰 Premium Store</h2>
-            
-            <div class="currency-options">
-                <div class="currency-option active" onclick="selectCurrency('stars')">⭐ Stars</div>
-                <div class="currency-option" onclick="selectCurrency('ton')">💎 TON</div>
-                <div class="currency-option" onclick="selectCurrency('usd')">💵 USD</div>
+        
+        <div id="profileModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">👤 Profile</h2>
+                <div class="profile-info">
+                    <div class="avatar">👤</div>
+                    <div id="userName">Loading...</div>
+                    <div id="userLevel">Level: 1</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">Games Played</div>
+                    <div id="gamesPlayed">0</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">High Score</div>
+                    <div id="profileHighScore">0</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">Telegram Username</div>
+                    <div id="telegramUsername">Not available</div>
+                </div>
+                <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
             </div>
-            
-            <div class="balance" id="walletBalance">Connect Telegram Wallet</div>
-            
-            <div class="market-info" id="marketInfo">
-                <!-- Market information will be shown here -->
-            </div>
-            
-            <h3 style="color: #333; margin: 20px 0 10px 0;">Premium Bonuses</h3>
-            
-            <div class="bonus-item">
-                <div style="font-weight: bold; color: #333;">🚀 Speed Boost</div>
-                <div style="color: #666; font-size: 14px;">Increase snake speed for 30 seconds</div>
-                <div class="bonus-price" id="speedPrice">5 ⭐</div>
-                <button class="buy-btn" onclick="buyBonus('speed')">Buy Now</button>
-            </div>
-            
-            <div class="bonus-item">
-                <div style="font-weight: bold; color: #333;">🛡️ Shield Protection</div>
-                <div style="color: #666; font-size: 14px;">Teleport through walls for 20 seconds</div>
-                <div class="bonus-price" id="shieldPrice">10 ⭐</div>
-                <button class="buy-btn" onclick="buyBonus('shield')">Buy Now</button>
-            </div>
-            
-            <div class="bonus-item">
-                <div style="font-weight: bold; color: #333;">⚡ Double Points</div>
-                <div style="color: #666; font-size: 14px;">Get 2x points for 25 seconds</div>
-                <div class="bonus-price" id="doublePrice">15 ⭐</div>
-                <button class="buy-btn" onclick="buyBonus('double')">Buy Now</button>
-            </div>
-            
-            <div class="bonus-item">
-                <div style="font-weight: bold; color: #333;">🤖 Auto Pilot</div>
-                <div style="color: #666; font-size: 14px;">Snake moves automatically for 15 seconds</div>
-                <div class="bonus-price" id="autoPrice">20 ⭐</div>
-                <button class="buy-btn" onclick="buyBonus('auto')">Buy Now</button>
-            </div>
-            
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="control-btn" onclick="connectWallet()" style="background: #0088cc;">
-                    Connect Telegram Wallet
+        </div>
+        
+        <div id="walletModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">💰 Premium Store</h2>
+                
+                <div class="currency-options">
+                    <div class="currency-option active" onclick="selectCurrency('stars')">⭐ Stars</div>
+                    <div class="currency-option" onclick="selectCurrency('ton')">💎 TON</div>
+                    <div class="currency-option" onclick="selectCurrency('usd')">💵 USD</div>
+                </div>
+                
+                <div class="balance" id="walletBalance">Connect Telegram Wallet</div>
+                
+                <button class="wallet-connect-btn" onclick="connectTelegramWallet()">
+                    🔗 Connect Telegram Wallet
                 </button>
+                
+                <h3 style="color: #333; margin: 20px 0 10px 0;">Premium Bonuses</h3>
+                
+                <div class="bonus-item">
+                    <div style="font-weight: bold; color: #333;">🚀 Speed Boost</div>
+                    <div style="color: #666; font-size: 14px;">Increase snake speed for 30 seconds</div>
+                    <div class="bonus-price" id="speedPrice">5 ⭐</div>
+                    <button class="buy-btn" onclick="buyBonus('speed')">Buy Now</button>
+                </div>
+                
+                <div class="bonus-item">
+                    <div style="font-weight: bold; color: #333;">🛡️ Shield Protection</div>
+                    <div style="color: #666; font-size: 14px;">Teleport through walls for 20 seconds</div>
+                    <div class="bonus-price" id="shieldPrice">10 ⭐</div>
+                    <button class="buy-btn" onclick="buyBonus('shield')">Buy Now</button>
+                </div>
+                
+                <div class="bonus-item">
+                    <div style="font-weight: bold; color: #333;">⚡ Double Points</div>
+                    <div style="color: #666; font-size: 14px;">Get 2x points for 25 seconds</div>
+                    <div class="bonus-price" id="doublePrice">15 ⭐</div>
+                    <button class="buy-btn" onclick="buyBonus('double')">Buy Now</button>
+                </div>
+                
+                <div class="bonus-item">
+                    <div style="font-weight: bold; color: #333;">🤖 Auto Pilot</div>
+                    <div style="color: #666; font-size: 14px;">Snake moves automatically for 15 seconds</div>
+                    <div class="bonus-price" id="autoPrice">20 ⭐</div>
+                    <button class="buy-btn" onclick="buyBonus('auto')">Buy Now</button>
+                </div>
+                
+                <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
             </div>
-            
-            <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
         </div>
-    </div>
-    
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <h2 class="modal-title">⚙️ Settings</h2>
-            <div class="setting-item">
-                <div class="setting-label">Snake Speed</div>
-                <input type="range" min="80" max="250" value="150" class="slider" id="speedSlider" oninput="updateSpeedSetting(this.value)">
-                <div class="speed-display" id="speedDisplay">Medium (150ms)</div>
+        
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">⚙️ Settings</h2>
+                <div class="setting-item">
+                    <div class="setting-label">Snake Speed</div>
+                    <input type="range" min="50" max="250" value="150" class="slider" id="speedSlider" oninput="updateSpeedSetting(this.value)">
+                    <div class="speed-display" id="speedDisplay">Medium (150ms)</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">Sound Effects</div>
+                    <label>
+                        <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
+                        Enable Sound
+                    </label>
+                </div>
+                <button class="close-modal" onclick="closeModal('settingsModal')">Save & Close</button>
             </div>
-            <div class="setting-item">
-                <div class="setting-label">Sound Effects</div>
-                <label>
-                    <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
-                    Enable Sound
-                </label>
-            </div>
-            <button class="close-modal" onclick="closeModal('settingsModal')">Save & Close</button>
         </div>
     </div>
 
     <script>
-        // Telegram Mini App initialization
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
+        // Game State
+        let isLoggedIn = false;
+        let tg = null;
         
         // Game variables
         const canvas = document.getElementById('gameCanvas');
@@ -590,7 +629,7 @@
         let gameInterval;
         let isPaused = false;
         let gameStarted = false;
-        let baseGameSpeed = 150; // Default speed in milliseconds
+        let baseGameSpeed = 150;
         let currentGameSpeed = 150;
         let selectedCurrency = 'stars';
         let isInStore = false;
@@ -605,74 +644,161 @@
 
         let bonusIntervals = {};
 
-        // Dynamic bonus prices with market fluctuations
+        // Bonus prices
         let bonusPrices = {
-            stars: {
-                speed: 5,
-                shield: 10,
-                double: 15,
-                auto: 20,
-                base: { speed: 5, shield: 10, double: 15, auto: 20 }
-            },
-            ton: {
-                speed: 0.8,
-                shield: 1.6,
-                double: 2.4,
-                auto: 3.2,
-                base: { speed: 0.8, shield: 1.6, double: 2.4, auto: 3.2 }
-            },
-            usd: {
-                speed: 0.3,
-                shield: 0.6,
-                double: 0.9,
-                auto: 1.2,
-                base: { speed: 0.3, shield: 0.6, double: 0.9, auto: 1.2 }
-            }
-        };
-
-        // Price change history for showing trends
-        let priceHistory = {
-            stars: { change: 0, trend: 'stable' },
-            ton: { change: 0, trend: 'stable' },
-            usd: { change: 0, trend: 'stable' }
+            stars: { speed: 5, shield: 10, double: 15, auto: 20 },
+            ton: { speed: 0.5, shield: 1.0, double: 1.5, auto: 2.0 },
+            usd: { speed: 0.1, shield: 0.2, double: 0.3, auto: 0.4 }
         };
 
         // User data
         let userData = {
-            highScore: localStorage.getItem('snakeHighScore') ? parseInt(localStorage.getItem('snakeHighScore')) : 0,
-            gamesPlayed: localStorage.getItem('gamesPlayed') ? parseInt(localStorage.getItem('gamesPlayed')) : 0,
+            highScore: 0,
+            gamesPlayed: 0,
             userName: '',
+            telegramUsername: '',
             telegramId: '',
-            walletConnected: localStorage.getItem('walletConnected') === 'true'
+            walletConnected: false
         };
 
         // Leaderboard data
-        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+        let leaderboard = [];
 
-        // Initialize Telegram user data
-        function initTelegramUser() {
+        // Initialize Telegram Mini App
+        function initTelegramApp() {
+            tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            // Check if user is already authenticated
             if (tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                userData.userName = user.first_name || 'Telegram User';
-                if (user.last_name) {
-                    userData.userName += ' ' + user.last_name;
-                }
-                userData.telegramId = user.id.toString();
-                
-                localStorage.setItem('telegramUserName', userData.userName);
-                localStorage.setItem('telegramUserId', userData.telegramId);
+                handleTelegramLogin(tg.initDataUnsafe.user);
             } else {
-                userData.userName = localStorage.getItem('telegramUserName') || 'Player' + Math.floor(Math.random() * 1000);
-                userData.telegramId = localStorage.getItem('telegramUserId') || 'Not available';
+                // Show login screen
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('gameMainContainer').style.display = 'none';
             }
+        }
+
+        // Handle Telegram login
+        function handleTelegramLogin(user) {
+            isLoggedIn = true;
+            userData.userName = user.first_name || 'Telegram User';
+            if (user.last_name) {
+                userData.userName += ' ' + user.last_name;
+            }
+            userData.telegramUsername = user.username || 'No username';
+            userData.telegramId = user.id.toString();
+            
+            // Load user data from localStorage
+            loadUserData();
+            
+            // Show main game interface
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('gameMainContainer').style.display = 'block';
+            
+            // Update profile
+            updateProfileModal();
+            
+            // Load leaderboard
+            loadLeaderboard();
+            
+            console.log('User logged in:', userData);
+        }
+
+        // Login with Telegram
+        function loginWithTelegram() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                if (tg.initDataUnsafe.user) {
+                    handleTelegramLogin(tg.initDataUnsafe.user);
+                } else {
+                    alert('Please open this game through Telegram to login.');
+                }
+            } else {
+                alert('This game requires Telegram to play. Please open it in Telegram.');
+            }
+        }
+
+        // Connect Telegram Wallet
+        function connectTelegramWallet() {
+            if (!isLoggedIn) {
+                alert('Please login first!');
+                return;
+            }
+            
+            // Simulate wallet connection (in real app, use Telegram Payments)
+            userData.walletConnected = true;
+            updateWalletModal();
+            
+            alert('Telegram Wallet connected successfully! You can now purchase bonuses.');
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            const savedData = localStorage.getItem(`snakeGame_${userData.telegramId}`);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                userData.highScore = data.highScore || 0;
+                userData.gamesPlayed = data.gamesPlayed || 0;
+            }
+            
+            // Load game speed setting
+            const savedSpeed = localStorage.getItem(`gameSpeed_${userData.telegramId}`);
+            if (savedSpeed) {
+                baseGameSpeed = parseInt(savedSpeed);
+                document.getElementById('speedSlider').value = 300 - baseGameSpeed;
+                updateSpeedDisplay();
+            }
+        }
+
+        // Save user data to localStorage
+        function saveUserData() {
+            const data = {
+                highScore: userData.highScore,
+                gamesPlayed: userData.gamesPlayed,
+                userName: userData.userName,
+                telegramUsername: userData.telegramUsername
+            };
+            localStorage.setItem(`snakeGame_${userData.telegramId}`, JSON.stringify(data));
+        }
+
+        // Load leaderboard from localStorage
+        function loadLeaderboard() {
+            const savedLeaderboard = localStorage.getItem('snakeLeaderboard');
+            if (savedLeaderboard) {
+                leaderboard = JSON.parse(savedLeaderboard);
+            } else {
+                // Create sample leaderboard
+                leaderboard = [
+                    { name: "ProPlayer", score: 250, telegramId: "123" },
+                    { name: "SnakeMaster", score: 180, telegramId: "456" },
+                    { name: "GameChamp", score: 150, telegramId: "789" }
+                ];
+            }
+            updateLeaderboard();
+        }
+
+        // Save leaderboard to localStorage
+        function saveLeaderboard() {
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
         }
 
         // Speed Setting System - FIXED
         function updateSpeedSetting(sliderValue) {
-            // Convert slider value to actual game speed
-            baseGameSpeed = 300 - sliderValue; // Lower number = faster game
+            // Convert slider value to actual game speed (lower = faster)
+            baseGameSpeed = 300 - sliderValue;
             
-            // Update speed display
+            // Save setting
+            if (isLoggedIn) {
+                localStorage.setItem(`gameSpeed_${userData.telegramId}`, baseGameSpeed.toString());
+            }
+            
+            updateSpeedDisplay();
+            applyGameSpeed();
+        }
+
+        function updateSpeedDisplay() {
             const speedDisplay = document.getElementById('speedDisplay');
             let speedText = '';
             
@@ -687,17 +813,12 @@
             }
             
             speedDisplay.textContent = `${speedText} (${baseGameSpeed}ms)`;
-            
-            // Apply speed change immediately if game is running
-            applyGameSpeed();
         }
 
         function applyGameSpeed() {
-            // Apply speed boost bonus if active
             currentGameSpeed = activeBonuses.speed.active ? 
                 Math.max(50, baseGameSpeed - 70) : baseGameSpeed;
             
-            // Restart game interval with new speed
             if (gameInterval && gameStarted && !isPaused) {
                 clearInterval(gameInterval);
                 gameInterval = setInterval(gameLoop, currentGameSpeed);
@@ -711,22 +832,10 @@
             let newX = head.x;
             let newY = head.y;
             
-            // Left wall teleport to right
-            if (head.x < 0) {
-                newX = canvas.width - gridSize;
-            }
-            // Right wall teleport to left
-            else if (head.x >= canvas.width) {
-                newX = 0;
-            }
-            // Top wall teleport to bottom
-            else if (head.y < 0) {
-                newY = canvas.height - gridSize;
-            }
-            // Bottom wall teleport to top
-            else if (head.y >= canvas.height) {
-                newY = 0;
-            }
+            if (head.x < 0) newX = canvas.width - gridSize;
+            else if (head.x >= canvas.width) newX = 0;
+            else if (head.y < 0) newY = canvas.height - gridSize;
+            else if (head.y >= canvas.height) newY = 0;
             
             return { x: newX, y: newY };
         }
@@ -741,26 +850,13 @@
             activeBonuses[bonusType].active = true;
             activeBonuses[bonusType].timer = activeBonuses[bonusType].duration;
             
-            // Apply bonus effects
-            switch(bonusType) {
-                case 'speed':
-                    applyGameSpeed(); // Apply speed change
-                    break;
-                case 'shield':
-                    // Shield effect applied in collision check
-                    break;
-                case 'double':
-                    // Double points applied in scoring
-                    break;
-                case 'auto':
-                    // Auto pilot logic
-                    break;
+            if (bonusType === 'speed') {
+                applyGameSpeed();
             }
             
             createBonusIndicator(bonusType);
             updateBonusTimer(bonusType);
             
-            // Start bonus timer
             bonusIntervals[bonusType] = setInterval(() => {
                 activeBonuses[bonusType].timer -= 100;
                 updateBonusTimer(bonusType);
@@ -779,20 +875,8 @@
                 clearInterval(bonusIntervals[bonusType]);
             }
             
-            // Remove bonus effects
-            switch(bonusType) {
-                case 'speed':
-                    applyGameSpeed(); // Revert to base speed
-                    break;
-                case 'shield':
-                    // Shield removed automatically
-                    break;
-                case 'double':
-                    // Double points removed automatically
-                    break;
-                case 'auto':
-                    // Auto pilot deactivated
-                    break;
+            if (bonusType === 'speed') {
+                applyGameSpeed();
             }
             
             removeBonusIndicator(bonusType);
@@ -806,7 +890,6 @@
             indicator.innerHTML = `${getBonusEmoji(bonusType)} <span id="timer-${bonusType}">${(activeBonuses[bonusType].duration/1000).toFixed(1)}s</span>`;
             indicatorsContainer.appendChild(indicator);
             
-            // Position indicators vertically
             const activeIndicators = document.querySelectorAll('.bonus-indicator');
             indicator.style.top = `${10 + (activeIndicators.length - 1) * 35}px`;
         }
@@ -817,7 +900,6 @@
                 indicator.remove();
             }
             
-            // Reposition remaining indicators
             const activeIndicators = document.querySelectorAll('.bonus-indicator');
             activeIndicators.forEach((indicator, index) => {
                 indicator.style.top = `${10 + index * 35}px`;
@@ -843,12 +925,12 @@
 
         function showBonusMessage(bonusType) {
             const messages = {
-                speed: '🚀 Speed Boost Activated! Snake moves faster for 30 seconds.',
-                shield: '🛡️ Shield Activated! You can teleport through walls for 20 seconds.',
-                double: '⚡ Double Points Activated! Get 2x points for 25 seconds.',
-                auto: '🤖 Auto Pilot Activated! Snake moves automatically for 15 seconds.'
+                speed: '🚀 Speed Boost Activated!',
+                shield: '🛡️ Shield Activated!',
+                double: '⚡ Double Points Activated!',
+                auto: '🤖 Auto Pilot Activated!'
             };
-            alert(messages[bonusType]);
+            // You can show a toast notification here
         }
 
         // Auto Pilot Logic
@@ -856,7 +938,6 @@
             if (!activeBonuses.auto.active || !gameStarted) return;
             
             const head = snake[0];
-            
             const directions = [
                 { dx: gridSize, dy: 0 },
                 { dx: -gridSize, dy: 0 },
@@ -871,12 +952,10 @@
                 const newX = head.x + dir.dx;
                 const newY = head.y + dir.dy;
                 
-                // Check if this direction causes collision
                 if (newX < 0 || newX >= canvas.width || newY < 0 || newY >= canvas.height) {
                     continue;
                 }
                 
-                // Check self collision
                 let collision = false;
                 for (let i = 0; i < snake.length; i++) {
                     if (newX === snake[i].x && newY === snake[i].y) {
@@ -887,7 +966,6 @@
                 if (collision) continue;
                 
                 const distance = Math.sqrt(Math.pow(newX - food.x, 2) + Math.pow(newY - food.y, 2));
-                
                 if (distance < minDistance) {
                     minDistance = distance;
                     bestDirection = dir;
@@ -900,98 +978,7 @@
             }
         }
 
-        // Pause game when opening store
-        function pauseGameForStore() {
-            if (gameStarted && !isPaused) {
-                isPaused = true;
-                document.getElementById('gamePausedOverlay').style.display = 'flex';
-                document.getElementById('pauseBtn').textContent = 'Resume';
-            }
-        }
-
-        // Resume game when closing store
-        function resumeGameFromStore() {
-            if (gameStarted && isPaused && !isInStore) {
-                isPaused = false;
-                document.getElementById('gamePausedOverlay').style.display = 'none';
-                document.getElementById('pauseBtn').textContent = 'Pause';
-            }
-        }
-
-        // Check for pending bonuses when game starts
-        function checkPendingBonuses() {
-            const bonuses = ['speed', 'shield', 'double', 'auto'];
-            bonuses.forEach(bonusType => {
-                if (localStorage.getItem(`pendingBonus_${bonusType}`) === 'true') {
-                    localStorage.removeItem(`pendingBonus_${bonusType}`);
-                    activateBonus(bonusType);
-                }
-            });
-        }
-
-        // Simulate market price fluctuations
-        function updateMarketPrices() {
-            const currencies = ['stars', 'ton', 'usd'];
-            const bonuses = ['speed', 'shield', 'double', 'auto'];
-            
-            currencies.forEach(currency => {
-                let totalChange = 0;
-                
-                bonuses.forEach(bonus => {
-                    const changePercent = (Math.random() * 30 - 15) / 100;
-                    const basePrice = bonusPrices[currency].base[bonus];
-                    const newPrice = basePrice * (1 + changePercent);
-                    
-                    if (currency === 'stars') {
-                        bonusPrices[currency][bonus] = Math.max(1, Math.round(newPrice));
-                    } else {
-                        bonusPrices[currency][bonus] = Math.max(0.1, Math.round(newPrice * 10) / 10);
-                    }
-                    
-                    totalChange += changePercent;
-                });
-                
-                const avgChange = (totalChange / bonuses.length) * 100;
-                priceHistory[currency].change = avgChange;
-                priceHistory[currency].trend = avgChange > 2 ? 'up' : avgChange < -2 ? 'down' : 'stable';
-            });
-            
-            if (document.getElementById('walletModal').style.display === 'flex') {
-                updateBonusPrices();
-                updateMarketInfo();
-            }
-        }
-
-        function updateMarketInfo() {
-            const marketInfo = document.getElementById('marketInfo');
-            const trends = {
-                'stars': priceHistory.stars,
-                'ton': priceHistory.ton,
-                'usd': priceHistory.usd
-            };
-            
-            let infoText = 'Market: ';
-            Object.keys(trends).forEach((currency, index) => {
-                if (index > 0) infoText += ' • ';
-                const trend = trends[currency];
-                const changeSymbol = trend.change > 0 ? '↗' : trend.change < 0 ? '↘' : '→';
-                const changeColor = trend.change > 0 ? 'price-up' : trend.change < 0 ? 'price-down' : '';
-                infoText += `${getCurrencySymbol(currency)} ${changeSymbol} <span class="${changeColor}">${trend.change.toFixed(1)}%</span>`;
-            });
-            
-            marketInfo.innerHTML = infoText;
-        }
-
-        function getCurrencySymbol(currency) {
-            const symbols = {
-                stars: '⭐',
-                ton: '💎',
-                usd: '💵'
-            };
-            return symbols[currency] || '⭐';
-        }
-
-        // Initialize game
+        // Game initialization
         function initGame() {
             snake = [
                 {x: 5 * gridSize, y: 5 * gridSize},
@@ -1006,21 +993,19 @@
             gameStarted = true;
             isPaused = false;
             
-            // Reset all bonuses
             Object.keys(activeBonuses).forEach(bonus => {
                 deactivateBonus(bonus);
             });
             
-            // Check for pending bonuses
             checkPendingBonuses();
             
             userData.gamesPlayed++;
-            localStorage.setItem('gamesPlayed', userData.gamesPlayed);
+            saveUserData();
             
             document.getElementById('gamePausedOverlay').style.display = 'none';
             drawGame();
         }
-        
+
         function generateFood() {
             let possiblePositions = [];
             for(let x = 0; x < tileCountX; x++) {
@@ -1040,7 +1025,7 @@
                 food = possiblePositions[randomIndex];
             }
         }
-        
+
         function gameLoop() {
             if(isPaused || !gameStarted) return;
             
@@ -1056,11 +1041,10 @@
             
             drawGame();
         }
-        
+
         function moveSnake() {
             let head = {x: snake[0].x + dx, y: snake[0].y + dy};
             
-            // Apply shield wall teleportation
             if (activeBonuses.shield.active) {
                 head = handleShieldWallTeleport(head);
             }
@@ -1078,16 +1062,14 @@
                 snake.pop();
             }
         }
-        
+
         function checkCollision() {
             const head = snake[0];
             
-            // Wall collision (skip if shield is active - handled in moveSnake)
             if(!activeBonuses.shield.active && (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height)) {
                 return true;
             }
             
-            // Self collision
             for(let i = 1; i < snake.length; i++) {
                 if(head.x === snake[i].x && head.y === snake[i].y) {
                     return true;
@@ -1096,7 +1078,7 @@
             
             return false;
         }
-        
+
         function drawGame() {
             ctx.fillStyle = '#1a1a1a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1148,7 +1130,8 @@
             ctx.arc(centerX - 2, centerY - 2, radius/3, 0, 2 * Math.PI);
             ctx.fill();
         }
-        
+
+        // Touch controls
         let touchStartX = 0;
         let touchStartY = 0;
         
@@ -1189,7 +1172,7 @@
             touchStartY = 0;
             e.preventDefault();
         }, { passive: false });
-        
+
         function gameOver() {
             clearInterval(gameInterval);
             gameStarted = false;
@@ -1200,33 +1183,50 @@
             
             if(score > userData.highScore) {
                 userData.highScore = score;
-                localStorage.setItem('snakeHighScore', userData.highScore);
-                updateLeaderboardWithScore(userData.userName, score);
+                updateLeaderboardWithScore();
+                saveUserData();
             }
             
             alert(`Game Over! Your score: ${score}`);
         }
-        
-        function updateLeaderboardWithScore(playerName, playerScore) {
-            leaderboard = leaderboard.filter(entry => entry.name !== playerName);
+
+        function updateLeaderboardWithScore() {
+            // Find if user already exists in leaderboard
+            const existingIndex = leaderboard.findIndex(entry => entry.telegramId === userData.telegramId);
             
-            leaderboard.push({
-                name: playerName,
-                score: playerScore,
-                timestamp: Date.now()
-            });
+            if (existingIndex !== -1) {
+                // Update existing score if it's higher
+                if (score > leaderboard[existingIndex].score) {
+                    leaderboard[existingIndex].score = score;
+                    leaderboard[existingIndex].name = userData.userName;
+                }
+            } else {
+                // Add new entry
+                leaderboard.push({
+                    name: userData.userName,
+                    score: score,
+                    telegramId: userData.telegramId
+                });
+            }
             
+            // Sort and keep top 10
             leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 150);
+            leaderboard = leaderboard.slice(0, 10);
             
-            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+            saveLeaderboard();
+            updateLeaderboard();
         }
-        
+
         function updateScore() {
             document.getElementById('score').textContent = score;
         }
-        
+
         function startGame() {
+            if (!isLoggedIn) {
+                alert('Please login first!');
+                return;
+            }
+            
             if(gameInterval) {
                 clearInterval(gameInterval);
             }
@@ -1236,7 +1236,7 @@
             document.getElementById('gamePausedOverlay').style.display = 'none';
             gameInterval = setInterval(gameLoop, currentGameSpeed);
         }
-        
+
         function pauseGame() {
             if(!gameStarted) return;
             
@@ -1244,7 +1244,7 @@
             document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
             document.getElementById('gamePausedOverlay').style.display = isPaused ? 'flex' : 'none';
         }
-        
+
         function resetGame() {
             clearInterval(gameInterval);
             gameStarted = false;
@@ -1258,15 +1258,20 @@
             document.getElementById('pauseBtn').textContent = 'Pause';
             document.getElementById('gamePausedOverlay').style.display = 'none';
         }
-        
+
+        // Navigation and Modal functions
         function showSection(section) {
+            if (!isLoggedIn) {
+                alert('Please login first!');
+                return;
+            }
+            
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
             
             if(section !== 'home') {
-                // Pause game when opening store
                 if (section === 'wallet') {
                     isInStore = true;
                     pauseGameForStore();
@@ -1282,36 +1287,68 @@
                     updateLeaderboard();
                 }
             } else {
-                // Resume game when returning to home
                 isInStore = false;
                 resumeGameFromStore();
             }
         }
-        
+
+        function pauseGameForStore() {
+            if (gameStarted && !isPaused) {
+                isPaused = true;
+                document.getElementById('gamePausedOverlay').style.display = 'flex';
+                document.getElementById('pauseBtn').textContent = 'Resume';
+            }
+        }
+
+        function resumeGameFromStore() {
+            if (gameStarted && isPaused && !isInStore) {
+                isPaused = false;
+                document.getElementById('gamePausedOverlay').style.display = 'none';
+                document.getElementById('pauseBtn').textContent = 'Pause';
+            }
+        }
+
+        function checkPendingBonuses() {
+            const bonuses = ['speed', 'shield', 'double', 'auto'];
+            bonuses.forEach(bonusType => {
+                if (localStorage.getItem(`pendingBonus_${bonusType}`) === 'true') {
+                    localStorage.removeItem(`pendingBonus_${bonusType}`);
+                    activateBonus(bonusType);
+                }
+            });
+        }
+
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
         }
-        
+
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
             
-            // Resume game when closing store modal
             if (modalId === 'walletModal') {
                 isInStore = false;
                 resumeGameFromStore();
             }
         }
-        
+
         function openSettings() {
+            if (!isLoggedIn) {
+                alert('Please login first!');
+                return;
+            }
             openModal('settingsModal');
         }
-        
+
         function exitGame() {
             if(confirm('Are you sure you want to exit?')) {
-                tg.close();
+                if (tg) {
+                    tg.close();
+                } else {
+                    window.close();
+                }
             }
         }
-        
+
         function selectCurrency(currency) {
             selectedCurrency = currency;
             
@@ -1321,9 +1358,8 @@
             event.currentTarget.classList.add('active');
             
             updateBonusPrices();
-            updateMarketInfo();
         }
-        
+
         function updateBonusPrices() {
             const symbols = {
                 stars: '⭐',
@@ -1331,33 +1367,22 @@
                 usd: '💵 USD'
             };
             
-            const formatPrice = (price, currency) => {
-                if (currency === 'stars') {
-                    return Math.round(price);
-                } else {
-                    return price.toFixed(1);
-                }
-            };
-            
             document.getElementById('speedPrice').innerHTML = 
-                `${formatPrice(bonusPrices[selectedCurrency].speed, selectedCurrency)} ${symbols[selectedCurrency]}`;
+                `${bonusPrices[selectedCurrency].speed} ${symbols[selectedCurrency]}`;
             document.getElementById('shieldPrice').innerHTML = 
-                `${formatPrice(bonusPrices[selectedCurrency].shield, selectedCurrency)} ${symbols[selectedCurrency]}`;
+                `${bonusPrices[selectedCurrency].shield} ${symbols[selectedCurrency]}`;
             document.getElementById('doublePrice').innerHTML = 
-                `${formatPrice(bonusPrices[selectedCurrency].double, selectedCurrency)} ${symbols[selectedCurrency]}`;
+                `${bonusPrices[selectedCurrency].double} ${symbols[selectedCurrency]}`;
             document.getElementById('autoPrice').innerHTML = 
-                `${formatPrice(bonusPrices[selectedCurrency].auto, selectedCurrency)} ${symbols[selectedCurrency]}`;
+                `${bonusPrices[selectedCurrency].auto} ${symbols[selectedCurrency]}`;
         }
-        
-        function connectWallet() {
-            userData.walletConnected = true;
-            localStorage.setItem('walletConnected', 'true');
-            
-            updateWalletModal();
-            alert('Telegram Wallet connected successfully!');
-        }
-        
+
         function buyBonus(bonusType) {
+            if (!isLoggedIn) {
+                alert('Please login first!');
+                return;
+            }
+            
             if (!userData.walletConnected) {
                 alert('Please connect your Telegram Wallet first!');
                 return;
@@ -1367,29 +1392,25 @@
             const currencyName = selectedCurrency === 'stars' ? 'Stars' : 
                                selectedCurrency === 'ton' ? 'TON' : 'USD';
             
-            if (confirm(`Buy ${bonusType} bonus for ${price} ${currencyName}?\n\nGame will be paused. Press Start or Resume to activate the bonus.`)) {
+            if (confirm(`Buy ${bonusType} bonus for ${price} ${currencyName}?`)) {
                 processPayment(bonusType, price, selectedCurrency);
             }
         }
-        
+
         function processPayment(bonusType, price, currency) {
-            alert(`Payment processed! ${price} ${currency} deducted.\n\nThe ${bonusType} bonus will activate when you start or resume the game.`);
-            
-            // Store bonus for activation when game starts/resumes
+            alert(`Payment processed! ${price} ${currency} deducted.\n\nBonus will activate when you start or resume the game.`);
             localStorage.setItem(`pendingBonus_${bonusType}`, 'true');
-            
-            // Close store modal
             closeModal('walletModal');
         }
-        
+
         function updateProfileModal() {
             document.getElementById('userName').textContent = userData.userName;
             document.getElementById('userLevel').textContent = 'Level: ' + Math.floor(userData.gamesPlayed / 10 + 1);
             document.getElementById('gamesPlayed').textContent = userData.gamesPlayed;
             document.getElementById('profileHighScore').textContent = userData.highScore;
-            document.getElementById('telegramId').textContent = userData.telegramId;
+            document.getElementById('telegramUsername').textContent = '@' + userData.telegramUsername;
         }
-        
+
         function updateWalletModal() {
             if (userData.walletConnected) {
                 document.getElementById('walletBalance').textContent = 'Wallet Connected ✓';
@@ -1399,60 +1420,31 @@
                 document.getElementById('walletBalance').style.color = '#e74c3c';
             }
             updateBonusPrices();
-            updateMarketInfo();
         }
-        
+
         function updateLeaderboard() {
             const leaderboardList = document.getElementById('leaderboardList');
             
             if (leaderboard.length === 0) {
-                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet! Play the game to appear here!</div>';
+                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet! Be the first to play!</div>';
             } else {
                 leaderboardList.innerHTML = leaderboard.map((player, index) => `
-                    <div class="leaderboard-item" style="${player.name === userData.userName ? 'background: #f0f8ff;' : ''}">
+                    <div class="leaderboard-item" style="${player.telegramId === userData.telegramId ? 'background: #f0f8ff;' : ''}">
                         <div class="rank">#${index + 1}</div>
-                        <div class="player-name">${player.name} ${player.name === userData.userName ? ' (You)' : ''}</div>
+                        <div class="player-name">${player.name} ${player.telegramId === userData.telegramId ? ' (You)' : ''}</div>
                         <div class="player-score">${player.score}</div>
                     </div>
                 `).join('');
             }
         }
-        
+
         function toggleSound(enabled) {
             localStorage.setItem('soundEnabled', enabled);
         }
-        
-        // Load saved settings
-        function loadSettings() {
-            const soundToggle = document.getElementById('soundToggle');
-            const speedSlider = document.getElementById('speedSlider');
-            
-            // Load sound setting
-            soundToggle.checked = localStorage.getItem('soundEnabled') !== 'false';
-            
-            // Load speed setting
-            const savedSpeed = localStorage.getItem('gameSpeed');
-            if(savedSpeed) {
-                speedSlider.value = savedSpeed;
-                updateSpeedSetting(savedSpeed);
-            } else {
-                // Set default speed
-                speedSlider.value = 150;
-                updateSpeedSetting(150);
-                localStorage.setItem('gameSpeed', 150);
-            }
-        }
-        
+
+        // Initialize the app
         window.onload = function() {
-            initTelegramUser();
-            loadSettings();
-            initGame();
-            updateProfileModal();
-            updateWalletModal();
-            updateLeaderboard();
-            
-            setInterval(updateMarketPrices, 30000);
-            updateMarketPrices();
+            initTelegramApp();
         };
     </script>
 </body>

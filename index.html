@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snack Game</title>
+    <title>Snake Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
         
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,50 +22,7 @@
             touch-action: none;
             padding: 10px;
             color: white;
-        }
-        
-        /* Login Styles */
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .login-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        
-        .login-btn {
-            background: #0088cc;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 10px 0;
-            width: 250px;
-        }
-        
-        .login-info {
-            margin-top: 20px;
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-        }
-        
-        /* Main Game Container */
-        .game-main-container {
-            width: 100%;
-            max-width: 400px;
-            display: none;
-            margin: 0 auto;
+            overflow-x: hidden;
         }
         
         /* Header Styles */
@@ -87,6 +44,12 @@
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .exit-btn:hover {
+            background: #ff3742;
+            transform: scale(1.05);
         }
         
         .settings-btn {
@@ -98,12 +61,19 @@
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }
         
         .game-title {
             font-size: 24px;
             font-weight: bold;
             text-align: center;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         /* Game Container */
@@ -111,7 +81,8 @@
             position: relative;
             margin: 10px 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
         }
         
         #gameCanvas {
@@ -129,7 +100,7 @@
             border-radius: 25px;
             margin: 10px 0;
             backdrop-filter: blur(10px);
-            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .score {
@@ -142,6 +113,8 @@
             margin: 15px 0;
             display: flex;
             gap: 10px;
+            width: 100%;
+            max-width: 300px;
         }
         
         .control-btn {
@@ -155,6 +128,12 @@
             font-weight: bold;
             flex: 1;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         }
         
         .control-btn.pause {
@@ -163,6 +142,34 @@
         
         .control-btn.reset {
             background: #e74c3c;
+        }
+        
+        /* Speed Options */
+        .speed-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .speed-option {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .speed-option.active {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+            transform: scale(1.05);
         }
         
         /* Bottom Navigation */
@@ -178,8 +185,6 @@
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-            max-width: 400px;
-            margin: 0 auto;
         }
         
         .nav-item {
@@ -220,17 +225,23 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
         
         .modal-content {
             background: white;
             padding: 20px;
             border-radius: 20px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: modalAppear 0.3s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .modal-title {
@@ -249,6 +260,12 @@
             cursor: pointer;
             margin-top: 15px;
             width: 100%;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: #c0392b;
         }
         
         /* Settings Styles */
@@ -259,32 +276,8 @@
         
         .setting-label {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-weight: bold;
-        }
-        
-        .speed-options {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .speed-option {
-            flex: 1;
-            padding: 12px 5px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .speed-option.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
         }
         
         /* Leaderboard Styles */
@@ -294,6 +287,11 @@
             padding: 10px;
             border-bottom: 1px solid #eee;
             color: #333;
+            transition: background 0.2s ease;
+        }
+        
+        .leaderboard-item:hover {
+            background: #f5f5f5;
         }
         
         .rank {
@@ -332,6 +330,7 @@
             justify-content: center;
             font-size: 30px;
             color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         
         /* Wallet Styles */
@@ -345,36 +344,12 @@
         
         .wallet-options {
             display: flex;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .wallet-option {
-            flex: 1;
-            padding: 12px 5px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .wallet-option.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-        
-        .currency-options {
-            display: flex;
             justify-content: center;
             gap: 10px;
             margin: 15px 0;
         }
         
-        .currency-option {
+        .wallet-option {
             padding: 8px 15px;
             border: 2px solid #ddd;
             border-radius: 20px;
@@ -384,7 +359,7 @@
             transition: all 0.3s ease;
         }
         
-        .currency-option.active {
+        .wallet-option.active {
             border-color: #667eea;
             background: #667eea;
             color: white;
@@ -403,6 +378,7 @@
         .bonus-item:hover {
             border-color: #667eea;
             background: #f8f9ff;
+            transform: translateY(-2px);
         }
         
         .bonus-price {
@@ -421,18 +397,40 @@
             cursor: pointer;
             margin-top: 8px;
             font-weight: bold;
+            transition: all 0.3s ease;
         }
         
-        .wallet-connect-btn {
+        .buy-btn:hover {
+            background: #45a049;
+        }
+        
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* TON Wallet Section */
+        .ton-wallet-section {
             background: #0088cc;
             color: white;
-            border: none;
-            padding: 12px 20px;
+            padding: 15px;
             border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .ton-address {
+            font-family: monospace;
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        
+        .ton-balance {
+            font-size: 18px;
             font-weight: bold;
-            width: 100%;
             margin: 10px 0;
         }
 
@@ -446,6 +444,14 @@
             border-radius: 15px;
             font-size: 12px;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         .speed-indicator {
@@ -479,227 +485,239 @@
             font-weight: bold;
             border-radius: 15px;
             z-index: 100;
+            flex-direction: column;
             text-align: center;
         }
 
-        .wallet-balance-container {
-            background: #f8f9fa;
-            padding: 15px;
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
             border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
+            z-index: 2000;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: toastSlide 0.3s ease-out, toastFade 0.3s ease-out 2.7s forwards;
         }
 
-        .wallet-address {
-            font-family: monospace;
-            background: #e9ecef;
-            padding: 8px;
-            border-radius: 5px;
-            margin: 10px 0;
-            word-break: break-all;
-            font-size: 12px;
+        @keyframes toastSlide {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
+        @keyframes toastFade {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 700px) {
+            .game-title {
+                font-size: 20px;
+            }
+            
+            .score {
+                font-size: 18px;
+            }
+            
+            .control-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .bottom-nav {
+                padding: 8px 0;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="loginContainer" class="login-container">
-        <div class="login-title">🐍 Snack Game</div>
-        <p style="margin-bottom: 30px; font-size: 16px;">Login with your Telegram account to play</p>
-        
-        <button class="login-btn" onclick="loginWithTelegram()">
-            📱 Login with Telegram
-        </button>
-        
-        <div class="login-info">
-            You need to login through Telegram to play this game and access all features.
+    <!-- Header -->
+    <div class="header">
+        <button class="exit-btn" onclick="exitGame()">Exit</button>
+        <div class="game-title">Snake Game</div>
+        <button class="settings-btn" onclick="openSettings()">Settings</button>
+    </div>
+    
+    <!-- Score -->
+    <div class="score-container">
+        <div class="score">Score: <span id="score">0</span></div>
+    </div>
+    
+    <!-- Game Canvas -->
+    <div class="game-container">
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <div id="bonusIndicators"></div>
+        <div id="gamePausedOverlay" class="game-paused-overlay" style="display: none;">
+            Game Paused<br>
+            <small>Press Start or Resume to continue</small>
         </div>
     </div>
-
-    <!-- Main Game Container -->
-    <div id="gameMainContainer" class="game-main-container">
-        <!-- Header -->
-        <div class="header">
-            <button class="exit-btn" onclick="exitGame()">Exit</button>
-            <div class="game-title">Snack Game</div>
-            <button class="settings-btn" onclick="openSettings()">Settings</button>
+    
+    <!-- Speed Options -->
+    <div class="speed-options">
+        <div class="speed-option active" onclick="setSpeed('slow')">Slow</div>
+        <div class="speed-option" onclick="setSpeed('medium')">Medium</div>
+        <div class="speed-option" onclick="setSpeed('high')">High</div>
+    </div>
+    
+    <!-- Game Controls -->
+    <div class="game-controls">
+        <button class="control-btn" onclick="startGame()">Start Game</button>
+        <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
+        <button class="control-btn reset" onclick="resetGame()">Reset</button>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showSection('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Home</div>
         </div>
-        
-        <!-- Score -->
-        <div class="score-container">
-            <div class="score">Score: <span id="score">0</span></div>
+        <div class="nav-item" onclick="showSection('leaderboard')">
+            <div class="nav-icon">🏆</div>
+            <div class="nav-label">Leaderboard</div>
         </div>
-        
-        <!-- Game Canvas -->
-        <div class="game-container">
-            <canvas id="gameCanvas" width="300" height="300"></canvas>
-            <div id="bonusIndicators"></div>
-            <div id="gamePausedOverlay" class="game-paused-overlay" style="display: none;">
-                Game Paused<br>
-                <small>Press Start or Resume to continue</small>
-            </div>
+        <div class="nav-item" onclick="showSection('profile')">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Profile</div>
         </div>
-        
-        <!-- Game Controls -->
-        <div class="game-controls">
-            <button class="control-btn" onclick="startGame()">Start Game</button>
-            <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
-            <button class="control-btn reset" onclick="resetGame()">Reset</button>
+        <div class="nav-item" onclick="showSection('wallet')">
+            <div class="nav-icon">💰</div>
+            <div class="nav-label">Store</div>
         </div>
-        
-        <!-- Bottom Navigation -->
-        <div class="bottom-nav">
-            <div class="nav-item active" onclick="showSection('home')">
-                <div class="nav-icon">🏠</div>
-                <div class="nav-label">Home</div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">🏆 Leaderboard</h2>
+            <div id="leaderboardList">
+                <!-- Leaderboard items will be generated here -->
             </div>
-            <div class="nav-item" onclick="showSection('leaderboard')">
-                <div class="nav-icon">🏆</div>
-                <div class="nav-label">Leaderboard</div>
-            </div>
-            <div class="nav-item" onclick="showSection('profile')">
-                <div class="nav-icon">👤</div>
-                <div class="nav-label">Profile</div>
-            </div>
-            <div class="nav-item" onclick="showSection('wallet')">
-                <div class="nav-icon">💰</div>
-                <div class="nav-label">Wallet</div>
-            </div>
+            <button class="close-modal" onclick="closeModal('leaderboardModal')">Close</button>
         </div>
-        
-        <!-- Modals -->
-        <div id="leaderboardModal" class="modal">
-            <div class="modal-content">
-                <h2 class="modal-title">🏆 Leaderboard</h2>
-                <div id="leaderboardList">
-                    <div style="text-align: center; color: #666; padding: 20px;">Loading leaderboard...</div>
-                </div>
-                <button class="close-modal" onclick="closeModal('leaderboardModal')">Close</button>
+    </div>
+    
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">👤 Profile</h2>
+            <div class="profile-info">
+                <div class="avatar">👤</div>
+                <div id="userName">Loading...</div>
+                <div id="userLevel">Level: 1</div>
             </div>
-        </div>
-        
-        <div id="profileModal" class="modal">
-            <div class="modal-content">
-                <h2 class="modal-title">👤 Profile</h2>
-                <div class="profile-info">
-                    <div class="avatar">👤</div>
-                    <div id="userName">Loading...</div>
-                    <div id="userLevel">Level: 1</div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">Games Played</div>
-                    <div id="gamesPlayed">0</div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">High Score</div>
-                    <div id="profileHighScore">0</div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">Telegram Username</div>
-                    <div id="telegramUsername">Not available</div>
-                </div>
-                <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
+            <div class="setting-item">
+                <div class="setting-label">Games Played</div>
+                <div id="gamesPlayed">0</div>
             </div>
+            <div class="setting-item">
+                <div class="setting-label">High Score</div>
+                <div id="profileHighScore">0</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">Telegram ID</div>
+                <div id="telegramId">Not available</div>
+            </div>
+            <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
         </div>
-        
-        <div id="walletModal" class="modal">
-            <div class="modal-content">
-                <h2 class="modal-title">💰 Wallet</h2>
-                
-                <div class="wallet-options">
-                    <div class="wallet-option active" onclick="selectWallet('telegram')">📱 Telegram</div>
-                    <div class="wallet-option" onclick="selectWallet('ton')">💎 TON</div>
-                </div>
-
-                <div id="telegramWalletSection">
-                    <div class="wallet-balance-container">
-                        <div class="balance" id="telegramBalance">0 ⭐</div>
-                        <div style="color: #666; font-size: 14px;">Telegram Stars Balance</div>
-                    </div>
-                    
-                    <button class="wallet-connect-btn" onclick="connectTelegramWallet()">
-                        🔗 Connect Telegram Wallet
+    </div>
+    
+    <div id="walletModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">💰 Premium Store</h2>
+            
+            <div class="wallet-options">
+                <div class="wallet-option active" onclick="selectWallet('stars')">⭐ Stars</div>
+                <div class="wallet-option" onclick="selectWallet('ton')">💎 TON</div>
+            </div>
+            
+            <!-- Stars Wallet Section -->
+            <div id="starsWalletSection">
+                <div class="balance" id="starsBalance">Stars: 100 ⭐</div>
+            </div>
+            
+            <!-- TON Wallet Section -->
+            <div id="tonWalletSection" style="display: none;">
+                <div class="ton-wallet-section">
+                    <h3 style="margin: 0 0 10px 0;">TON Wallet</h3>
+                    <div class="ton-address" id="tonWalletAddress">Connect TON Wallet...</div>
+                    <div class="ton-balance" id="tonWalletBalance">0 TON</div>
+                    <button class="control-btn" onclick="connectTonWallet()" style="background: #0088cc; margin: 5px;">
+                        Connect TON Wallet
+                    </button>
+                    <button class="control-btn" onclick="disconnectTonWallet()" style="background: #e74c3c; margin: 5px;">
+                        Disconnect Wallet
                     </button>
                 </div>
-
-                <div id="tonWalletSection" style="display: none;">
-                    <div class="wallet-balance-container">
-                        <div class="balance" id="tonBalance">0 💎</div>
-                        <div style="color: #666; font-size: 14px;">TON Coin Balance</div>
-                    </div>
-                    
-                    <div class="wallet-address">
-                        Your TON Address:<br>
-                        <span id="tonAddress">Not connected</span>
-                    </div>
-                    
-                    <button class="wallet-connect-btn" onclick="connectTONWallet()">
-                        💎 Connect TON Wallet
-                    </button>
-                </div>
-
-                <h3 style="color: #333; margin: 20px 0 10px 0;">Premium Bonuses</h3>
-                
-                <div class="bonus-item">
-                    <div style="font-weight: bold; color: #333;">🚀 Speed Boost</div>
-                    <div style="color: #666; font-size: 14px;">Increase snake speed for 30 seconds</div>
-                    <div class="bonus-price" id="speedPrice">5 ⭐</div>
-                    <button class="buy-btn" onclick="buyBonus('speed')">Buy Now</button>
-                </div>
-                
-                <div class="bonus-item">
-                    <div style="font-weight: bold; color: #333;">🛡️ Shield Protection</div>
-                    <div style="color: #666; font-size: 14px;">Teleport through walls for 20 seconds</div>
-                    <div class="bonus-price" id="shieldPrice">10 ⭐</div>
-                    <button class="buy-btn" onclick="buyBonus('shield')">Buy Now</button>
-                </div>
-                
-                <div class="bonus-item">
-                    <div style="font-weight: bold; color: #333;">⚡ Double Points</div>
-                    <div style="color: #666; font-size: 14px;">Get 2x points for 25 seconds</div>
-                    <div class="bonus-price" id="doublePrice">15 ⭐</div>
-                    <button class="buy-btn" onclick="buyBonus('double')">Buy Now</button>
-                </div>
-                
-                <div class="bonus-item">
-                    <div style="font-weight: bold; color: #333;">🤖 Auto Pilot</div>
-                    <div style="color: #666; font-size: 14px;">Snake moves automatically for 15 seconds</div>
-                    <div class="bonus-price" id="autoPrice">20 ⭐</div>
-                    <button class="buy-btn" onclick="buyBonus('auto')">Buy Now</button>
-                </div>
-                
-                <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
             </div>
+            
+            <h3 style="color: #333; margin: 20px 0 10px 0;">Premium Bonuses</h3>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🚀 Speed Boost</div>
+                <div style="color: #666; font-size: 14px;">Increase snake speed for 30 seconds</div>
+                <div class="bonus-price" id="speedPrice">5 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('speed')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🛡️ Shield Protection</div>
+                <div style="color: #666; font-size: 14px;">Teleport through walls for 20 seconds</div>
+                <div class="bonus-price" id="shieldPrice">10 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('shield')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">⚡ Double Points</div>
+                <div style="color: #666; font-size: 14px;">Get 2x points for 25 seconds</div>
+                <div class="bonus-price" id="doublePrice">15 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('double')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🤖 Auto Pilot</div>
+                <div style="color: #666; font-size: 14px;">Snake moves automatically for 15 seconds</div>
+                <div class="bonus-price" id="autoPrice">20 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('auto')">Buy Now</button>
+            </div>
+            
+            <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
         </div>
-        
-        <div id="settingsModal" class="modal">
-            <div class="modal-content">
-                <h2 class="modal-title">⚙️ Settings</h2>
-                <div class="setting-item">
-                    <div class="setting-label">Snake Speed</div>
-                    <div class="speed-options">
-                        <div class="speed-option active" onclick="setGameSpeed('slow')">Slow</div>
-                        <div class="speed-option" onclick="setGameSpeed('medium')">Medium</div>
-                        <div class="speed-option" onclick="setGameSpeed('high')">High</div>
-                    </div>
-                    <div class="speed-display" id="speedDisplay">Current: Medium (200ms)</div>
+    </div>
+    
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">⚙️ Settings</h2>
+            <div class="setting-item">
+                <div class="setting-label">Snake Speed</div>
+                <div class="speed-options">
+                    <div class="speed-option active" onclick="setSpeed('slow')">Slow</div>
+                    <div class="speed-option" onclick="setSpeed('medium')">Medium</div>
+                    <div class="speed-option" onclick="setSpeed('high')">High</div>
                 </div>
-                <div class="setting-item">
-                    <div class="setting-label">Sound Effects</div>
-                    <label>
-                        <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
-                        Enable Sound
-                    </label>
-                </div>
-                <button class="close-modal" onclick="closeModal('settingsModal')">Save & Close</button>
             </div>
+            <div class="setting-item">
+                <div class="setting-label">Sound Effects</div>
+                <label>
+                    <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)">
+                    Enable Sound
+                </label>
+            </div>
+            <button class="close-modal" onclick="closeModal('settingsModal')">Save & Close</button>
         </div>
     </div>
 
     <script>
-        // Game State
-        let isLoggedIn = false;
-        let tg = null;
+        // Telegram Mini App initialization
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
         
         // Game variables
         const canvas = document.getElementById('gameCanvas');
@@ -716,18 +734,25 @@
         let gameInterval;
         let isPaused = false;
         let gameStarted = false;
-        let baseGameSpeed = 200; // Default medium speed
-        let currentGameSpeed = 200;
-        let selectedCurrency = 'stars';
+        let baseGameSpeed = 150; // Default speed in milliseconds
+        let currentGameSpeed = 150;
+        let selectedWallet = 'stars';
         let isInStore = false;
-        let selectedWallet = 'telegram';
 
-        // Speed settings
-        const speedSettings = {
-            slow: { speed: 300, display: 'Slow (300ms)' },
-            medium: { speed: 200, display: 'Medium (200ms)' },
-            high: { speed: 100, display: 'High (100ms)' }
+        // Speed options mapping
+        const speedOptions = {
+            slow: 200,
+            medium: 150,
+            high: 100
         };
+
+        // TON Wallet variables
+        let tonWalletConnected = localStorage.getItem('tonWalletConnected') === 'true';
+        let tonWalletAddress = localStorage.getItem('tonWalletAddress') || '';
+        let tonBalance = localStorage.getItem('tonBalance') || '0';
+
+        // Stars Wallet variables
+        let starsBalance = localStorage.getItem('starsBalance') ? parseInt(localStorage.getItem('starsBalance')) : 100;
 
         // Bonus System Variables
         let activeBonuses = {
@@ -739,89 +764,118 @@
 
         let bonusIntervals = {};
 
-        // Bonus prices
+        // Bonus prices in stars
         let bonusPrices = {
-            stars: { speed: 5, shield: 10, double: 15, auto: 20 },
-            ton: { speed: 0.5, shield: 1.0, double: 1.5, auto: 2.0 }
+            speed: 5,
+            shield: 10,
+            double: 15,
+            auto: 20
         };
 
         // User data
         let userData = {
-            highScore: 0,
-            gamesPlayed: 0,
+            highScore: localStorage.getItem('snakeHighScore') ? parseInt(localStorage.getItem('snakeHighScore')) : 0,
+            gamesPlayed: localStorage.getItem('gamesPlayed') ? parseInt(localStorage.getItem('gamesPlayed')) : 0,
             userName: '',
-            telegramUsername: '',
-            telegramId: '',
-            telegramWalletConnected: false,
-            tonWalletConnected: false,
-            tonAddress: '',
-            telegramStars: 100,
-            tonCoins: 0
+            telegramId: ''
         };
 
         // Leaderboard data
-        let leaderboard = [];
+        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
 
-        // Initialize Telegram Mini App
-        function initTelegramApp() {
-            tg = window.Telegram.WebApp;
-            tg.ready();
-            tg.expand();
-            
-            // Set viewport for mobile
-            document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=400, user-scalable=no');
-            
-            // Check if user is already authenticated
+        // Initialize Telegram user data
+        function initTelegramUser() {
             if (tg.initDataUnsafe.user) {
-                handleTelegramLogin(tg.initDataUnsafe.user);
-            } else {
-                // Show login screen
-                document.getElementById('loginContainer').style.display = 'flex';
-                document.getElementById('gameMainContainer').style.display = 'none';
-            }
-        }
-
-        // Handle Telegram login
-        function handleTelegramLogin(user) {
-            isLoggedIn = true;
-            userData.userName = user.first_name || 'Telegram User';
-            if (user.last_name) {
-                userData.userName += ' ' + user.last_name;
-            }
-            userData.telegramUsername = user.username || 'No username';
-            userData.telegramId = user.id.toString();
-            
-            // Load user data from localStorage
-            loadUserData();
-            
-            // Show main game interface
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('gameMainContainer').style.display = 'block';
-            
-            // Update profile
-            updateProfileModal();
-            
-            // Load leaderboard
-            loadLeaderboard();
-            
-            console.log('User logged in:', userData);
-        }
-
-        // Login with Telegram
-        function loginWithTelegram() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                tg = window.Telegram.WebApp;
-                if (tg.initDataUnsafe.user) {
-                    handleTelegramLogin(tg.initDataUnsafe.user);
-                } else {
-                    alert('Please open this game through Telegram to login.');
+                const user = tg.initDataUnsafe.user;
+                userData.userName = user.first_name || 'Telegram User';
+                if (user.last_name) {
+                    userData.userName += ' ' + user.last_name;
                 }
+                userData.telegramId = user.id.toString();
+                
+                localStorage.setItem('telegramUserName', userData.userName);
+                localStorage.setItem('telegramUserId', userData.telegramId);
             } else {
-                alert('This game requires Telegram to play. Please open it in Telegram.');
+                userData.userName = localStorage.getItem('telegramUserName') || 'Player' + Math.floor(Math.random() * 1000);
+                userData.telegramId = localStorage.getItem('telegramUserId') || 'Not available';
             }
         }
 
-        // Wallet Management
+        // Speed setting function
+        function setSpeed(speed) {
+            // Update active speed option
+            document.querySelectorAll('.speed-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Set base game speed
+            baseGameSpeed = speedOptions[speed];
+            localStorage.setItem('gameSpeed', speed);
+            
+            // Apply speed change immediately if game is running
+            applyGameSpeed();
+            
+            showToast(`Speed set to ${speed}`);
+        }
+
+        function applyGameSpeed() {
+            // Apply speed boost bonus if active
+            currentGameSpeed = activeBonuses.speed.active ? 
+                Math.max(50, baseGameSpeed - 70) : baseGameSpeed;
+            
+            // Restart game interval with new speed
+            if (gameInterval && gameStarted && !isPaused) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, currentGameSpeed);
+            }
+        }
+
+        // TON Wallet functions
+        function connectTonWallet() {
+            // Simulate TON wallet connection
+            const walletAddress = "EQ" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const balance = (Math.random() * 10).toFixed(2);
+            
+            tonWalletConnected = true;
+            tonWalletAddress = walletAddress;
+            tonBalance = balance;
+            
+            localStorage.setItem('tonWalletConnected', 'true');
+            localStorage.setItem('tonWalletAddress', walletAddress);
+            localStorage.setItem('tonBalance', balance);
+            
+            updateTonWalletDisplay();
+            showToast('TON Wallet connected successfully!');
+        }
+
+        function disconnectTonWallet() {
+            tonWalletConnected = false;
+            tonWalletAddress = '';
+            tonBalance = '0';
+            
+            localStorage.setItem('tonWalletConnected', 'false');
+            localStorage.removeItem('tonWalletAddress');
+            localStorage.removeItem('tonBalance');
+            
+            updateTonWalletDisplay();
+            showToast('TON Wallet disconnected');
+        }
+
+        function updateTonWalletDisplay() {
+            const addressElement = document.getElementById('tonWalletAddress');
+            const balanceElement = document.getElementById('tonWalletBalance');
+            
+            if (tonWalletConnected) {
+                addressElement.textContent = tonWalletAddress;
+                balanceElement.textContent = tonBalance + ' TON';
+            } else {
+                addressElement.textContent = 'Connect TON Wallet...';
+                balanceElement.textContent = '0 TON';
+            }
+        }
+
+        // Wallet selection
         function selectWallet(walletType) {
             selectedWallet = walletType;
             
@@ -830,210 +884,741 @@
             });
             event.currentTarget.classList.add('active');
             
-            if (walletType === 'telegram') {
-                document.getElementById('telegramWalletSection').style.display = 'block';
+            // Show/hide wallet sections
+            if (walletType === 'stars') {
+                document.getElementById('starsWalletSection').style.display = 'block';
                 document.getElementById('tonWalletSection').style.display = 'none';
-                selectedCurrency = 'stars';
             } else {
-                document.getElementById('telegramWalletSection').style.display = 'none';
+                document.getElementById('starsWalletSection').style.display = 'none';
                 document.getElementById('tonWalletSection').style.display = 'block';
-                selectedCurrency = 'ton';
             }
             
             updateBonusPrices();
-            updateWalletDisplay();
         }
 
-        function connectTelegramWallet() {
-            if (!isLoggedIn) {
-                alert('Please login first!');
+        // Update stars balance display
+        function updateStarsBalance() {
+            document.getElementById('starsBalance').textContent = `Stars: ${starsBalance} ⭐`;
+        }
+
+        // Shield Wall Teleportation System
+        function handleShieldWallTeleport(head) {
+            if (!activeBonuses.shield.active) return head;
+            
+            let newX = head.x;
+            let newY = head.y;
+            
+            // Left wall teleport to right
+            if (head.x < 0) {
+                newX = canvas.width - gridSize;
+            }
+            // Right wall teleport to left
+            else if (head.x >= canvas.width) {
+                newX = 0;
+            }
+            // Top wall teleport to bottom
+            else if (head.y < 0) {
+                newY = canvas.height - gridSize;
+            }
+            // Bottom wall teleport to top
+            else if (head.y >= canvas.height) {
+                newY = 0;
+            }
+            
+            return { x: newX, y: newY };
+        }
+
+        // Bonus Management System
+        function activateBonus(bonusType) {
+            if (!gameStarted) {
+                localStorage.setItem(`pendingBonus_${bonusType}`, 'true');
                 return;
             }
             
-            // Simulate Telegram Wallet connection
-            userData.telegramWalletConnected = true;
-            userData.telegramStars = 100; // Starting balance
+            activeBonuses[bonusType].active = true;
+            activeBonuses[bonusType].timer = activeBonuses[bonusType].duration;
             
-            updateWalletDisplay();
-            alert('Telegram Wallet connected successfully! You received 100 ⭐ starting balance.');
-        }
-
-        function connectTONWallet() {
-            if (!isLoggedIn) {
-                alert('Please login first!');
-                return;
+            // Apply bonus effects
+            switch(bonusType) {
+                case 'speed':
+                    applyGameSpeed(); // Apply speed change
+                    break;
+                case 'shield':
+                    // Shield effect applied in collision check
+                    break;
+                case 'double':
+                    // Double points applied in scoring
+                    break;
+                case 'auto':
+                    // Auto pilot logic
+                    break;
             }
             
-            // Simulate TON Wallet connection
-            userData.tonWalletConnected = true;
-            userData.tonAddress = 'EQ' + Math.random().toString(36).substr(2, 20);
-            userData.tonCoins = 5.0; // Starting balance
+            createBonusIndicator(bonusType);
+            updateBonusTimer(bonusType);
             
-            updateWalletDisplay();
-            alert('TON Wallet connected successfully! You received 5.0 💎 starting balance.');
+            // Start bonus timer
+            bonusIntervals[bonusType] = setInterval(() => {
+                activeBonuses[bonusType].timer -= 100;
+                updateBonusTimer(bonusType);
+                
+                if (activeBonuses[bonusType].timer <= 0) {
+                    deactivateBonus(bonusType);
+                }
+            }, 100);
+            
+            showBonusMessage(bonusType);
         }
 
-        function updateWalletDisplay() {
-            // Telegram Wallet
-            if (userData.telegramWalletConnected) {
-                document.getElementById('telegramBalance').textContent = userData.telegramStars + ' ⭐';
-            } else {
-                document.getElementById('telegramBalance').textContent = 'Connect Wallet';
-            }
-            
-            // TON Wallet
-            if (userData.tonWalletConnected) {
-                document.getElementById('tonBalance').textContent = userData.tonCoins.toFixed(2) + ' 💎';
-                document.getElementById('tonAddress').textContent = userData.tonAddress;
-            } else {
-                document.getElementById('tonBalance').textContent = 'Connect Wallet';
-                document.getElementById('tonAddress').textContent = 'Not connected';
-            }
-        }
-
-        // Load user data from localStorage
-        function loadUserData() {
-            const savedData = localStorage.getItem(`snakeGame_${userData.telegramId}`);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                userData.highScore = data.highScore || 0;
-                userData.gamesPlayed = data.gamesPlayed || 0;
-                userData.telegramStars = data.telegramStars || 100;
-                userData.tonCoins = data.tonCoins || 0;
-                userData.telegramWalletConnected = data.telegramWalletConnected || false;
-                userData.tonWalletConnected = data.tonWalletConnected || false;
-                userData.tonAddress = data.tonAddress || '';
+        function deactivateBonus(bonusType) {
+            activeBonuses[bonusType].active = false;
+            if (bonusIntervals[bonusType]) {
+                clearInterval(bonusIntervals[bonusType]);
             }
             
-            // Load game speed setting
-            const savedSpeed = localStorage.getItem(`gameSpeed_${userData.telegramId}`);
-            if (savedSpeed) {
-                setGameSpeed(savedSpeed, false);
-            } else {
-                setGameSpeed('medium', false);
+            // Remove bonus effects
+            switch(bonusType) {
+                case 'speed':
+                    applyGameSpeed(); // Revert to base speed
+                    break;
+                case 'shield':
+                    // Shield removed automatically
+                    break;
+                case 'double':
+                    // Double points removed automatically
+                    break;
+                case 'auto':
+                    // Auto pilot deactivated
+                    break;
             }
-        }
-
-        // Save user data to localStorage
-        function saveUserData() {
-            const data = {
-                highScore: userData.highScore,
-                gamesPlayed: userData.gamesPlayed,
-                userName: userData.userName,
-                telegramUsername: userData.telegramUsername,
-                telegramStars: userData.telegramStars,
-                tonCoins: userData.tonCoins,
-                telegramWalletConnected: userData.telegramWalletConnected,
-                tonWalletConnected: userData.tonWalletConnected,
-                tonAddress: userData.tonAddress
-            };
-            localStorage.setItem(`snakeGame_${userData.telegramId}`, JSON.stringify(data));
-        }
-
-        // Load leaderboard from localStorage
-        function loadLeaderboard() {
-            const savedLeaderboard = localStorage.getItem('snakeLeaderboard');
-            if (savedLeaderboard) {
-                leaderboard = JSON.parse(savedLeaderboard);
-            } else {
-                // Create sample leaderboard
-                leaderboard = [
-                    { name: "ProPlayer", score: 250, telegramId: "123" },
-                    { name: "SnakeMaster", score: 180, telegramId: "456" },
-                    { name: "GameChamp", score: 150, telegramId: "789" }
-                ];
-            }
-            updateLeaderboard();
-        }
-
-        // Save leaderboard to localStorage
-        function saveLeaderboard() {
-            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
-        }
-
-        // Speed Setting System
-        function setGameSpeed(speed, save = true) {
-            baseGameSpeed = speedSettings[speed].speed;
             
-            // Update UI
-            document.querySelectorAll('.speed-option').forEach(option => {
-                option.classList.remove('active');
+            removeBonusIndicator(bonusType);
+        }
+
+        function createBonusIndicator(bonusType) {
+            const indicatorsContainer = document.getElementById('bonusIndicators');
+            const indicator = document.createElement('div');
+            indicator.className = `bonus-indicator ${bonusType}-indicator`;
+            indicator.id = `indicator-${bonusType}`;
+            indicator.innerHTML = `${getBonusEmoji(bonusType)} <span id="timer-${bonusType}">${(activeBonuses[bonusType].duration/1000).toFixed(1)}s</span>`;
+            indicatorsContainer.appendChild(indicator);
+            
+            // Position indicators vertically
+            const activeIndicators = document.querySelectorAll('.bonus-indicator');
+            indicator.style.top = `${10 + (activeIndicators.length - 1) * 35}px`;
+        }
+
+        function removeBonusIndicator(bonusType) {
+            const indicator = document.getElementById(`indicator-${bonusType}`);
+            if (indicator) {
+                indicator.remove();
+            }
+            
+            // Reposition remaining indicators
+            const activeIndicators = document.querySelectorAll('.bonus-indicator');
+            activeIndicators.forEach((indicator, index) => {
+                indicator.style.top = `${10 + index * 35}px`;
             });
-            event?.currentTarget.classList.add('active');
-            
-            document.getElementById('speedDisplay').textContent = `Current: ${speedSettings[speed].display}`;
-            
-            // Save setting
-            if (save && isLoggedIn) {
-                localStorage.setItem(`gameSpeed_${userData.telegramId}`, speed);
-            }
-            
-            applyGameSpeed();
         }
 
-        function applyGameSpeed() {
-            currentGameSpeed = activeBonuses.speed.active ? 
-                Math.max(50, baseGameSpeed - 70) : baseGameSpeed;
-            
-            if (gameInterval && gameStarted && !isPaused) {
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, currentGameSpeed);
+        function updateBonusTimer(bonusType) {
+            const timerElement = document.getElementById(`timer-${bonusType}`);
+            if (timerElement) {
+                timerElement.textContent = `${(activeBonuses[bonusType].timer/1000).toFixed(1)}s`;
             }
         }
 
-        // ... (Previous game functions remain the same, just updating the key ones)
+        function getBonusEmoji(bonusType) {
+            const emojis = {
+                speed: '🚀',
+                shield: '🛡️',
+                double: '⚡',
+                auto: '🤖'
+            };
+            return emojis[bonusType] || '🎁';
+        }
 
-        function buyBonus(bonusType) {
-            if (!isLoggedIn) {
-                alert('Please login first!');
-                return;
-            }
+        function showBonusMessage(bonusType) {
+            const messages = {
+                speed: '🚀 Speed Boost Activated! Snake moves faster for 30 seconds.',
+                shield: '🛡️ Shield Activated! You can teleport through walls for 20 seconds.',
+                double: '⚡ Double Points Activated! Get 2x points for 25 seconds.',
+                auto: '🤖 Auto Pilot Activated! Snake moves automatically for 15 seconds.'
+            };
+            showToast(messages[bonusType]);
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
             
-            if (selectedWallet === 'telegram' && !userData.telegramWalletConnected) {
-                alert('Please connect your Telegram Wallet first!');
-                return;
-            }
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        // Auto Pilot Logic
+        function autoPilot() {
+            if (!activeBonuses.auto.active || !gameStarted) return;
             
-            if (selectedWallet === 'ton' && !userData.tonWalletConnected) {
-                alert('Please connect your TON Wallet first!');
-                return;
-            }
+            const head = snake[0];
             
-            const price = bonusPrices[selectedCurrency][bonusType];
-            const currencyName = selectedCurrency === 'stars' ? 'Stars' : 'TON';
+            const directions = [
+                { dx: gridSize, dy: 0 },
+                { dx: -gridSize, dy: 0 },
+                { dx: 0, dy: gridSize },
+                { dx: 0, dy: -gridSize }
+            ];
             
-            // Check balance
-            let currentBalance = selectedWallet === 'telegram' ? userData.telegramStars : userData.tonCoins;
-            if (currentBalance < price) {
-                alert(`Insufficient balance! You need ${price} ${currencyName} but have ${currentBalance.toFixed(2)}`);
-                return;
-            }
+            let bestDirection = null;
+            let minDistance = Infinity;
             
-            if (confirm(`Buy ${bonusType} bonus for ${price} ${currencyName}?`)) {
-                // Deduct balance
-                if (selectedWallet === 'telegram') {
-                    userData.telegramStars -= price;
-                } else {
-                    userData.tonCoins -= price;
+            for (const dir of directions) {
+                const newX = head.x + dir.dx;
+                const newY = head.y + dir.dy;
+                
+                // Check if this direction causes collision
+                if (newX < 0 || newX >= canvas.width || newY < 0 || newY >= canvas.height) {
+                    continue;
                 }
                 
-                saveUserData();
-                updateWalletDisplay();
-                processPayment(bonusType, price, selectedCurrency);
+                // Check self collision
+                let collision = false;
+                for (let i = 0; i < snake.length; i++) {
+                    if (newX === snake[i].x && newY === snake[i].y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                if (collision) continue;
+                
+                const distance = Math.sqrt(Math.pow(newX - food.x, 2) + Math.pow(newY - food.y, 2));
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestDirection = dir;
+                }
+            }
+            
+            if (bestDirection) {
+                dx = bestDirection.dx;
+                dy = bestDirection.dy;
             }
         }
 
-        // Initialize the app
+        // Pause game when opening store
+        function pauseGameForStore() {
+            if (gameStarted && !isPaused) {
+                isPaused = true;
+                document.getElementById('gamePausedOverlay').style.display = 'flex';
+                document.getElementById('pauseBtn').textContent = 'Resume';
+            }
+        }
+
+        // Resume game when closing store
+        function resumeGameFromStore() {
+            if (gameStarted && isPaused && !isInStore) {
+                isPaused = false;
+                document.getElementById('gamePausedOverlay').style.display = 'none';
+                document.getElementById('pauseBtn').textContent = 'Pause';
+            }
+        }
+
+        // Check for pending bonuses when game starts
+        function checkPendingBonuses() {
+            const bonuses = ['speed', 'shield', 'double', 'auto'];
+            bonuses.forEach(bonusType => {
+                if (localStorage.getItem(`pendingBonus_${bonusType}`) === 'true') {
+                    localStorage.removeItem(`pendingBonus_${bonusType}`);
+                    activateBonus(bonusType);
+                }
+            });
+        }
+
+        // Update bonus prices display
+        function updateBonusPrices() {
+            if (selectedWallet === 'stars') {
+                document.getElementById('speedPrice').innerHTML = `${bonusPrices.speed} ⭐`;
+                document.getElementById('shieldPrice').innerHTML = `${bonusPrices.shield} ⭐`;
+                document.getElementById('doublePrice').innerHTML = `${bonusPrices.double} ⭐`;
+                document.getElementById('autoPrice').innerHTML = `${bonusPrices.auto} ⭐`;
+            } else {
+                // For TON wallet, convert stars to TON (approximate conversion)
+                document.getElementById('speedPrice').innerHTML = `${(bonusPrices.speed * 0.1).toFixed(1)} TON`;
+                document.getElementById('shieldPrice').innerHTML = `${(bonusPrices.shield * 0.1).toFixed(1)} TON`;
+                document.getElementById('doublePrice').innerHTML = `${(bonusPrices.double * 0.1).toFixed(1)} TON`;
+                document.getElementById('autoPrice').innerHTML = `${(bonusPrices.auto * 0.1).toFixed(1)} TON`;
+            }
+        }
+
+        // Initialize game
+        function initGame() {
+            snake = [
+                {x: 5 * gridSize, y: 5 * gridSize},
+                {x: 4 * gridSize, y: 5 * gridSize},
+                {x: 3 * gridSize, y: 5 * gridSize}
+            ];
+            generateFood();
+            score = 0;
+            updateScore();
+            dx = gridSize;
+            dy = 0;
+            gameStarted = true;
+            isPaused = false;
+            
+            // Reset all bonuses
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
+            // Check for pending bonuses
+            checkPendingBonuses();
+            
+            userData.gamesPlayed++;
+            localStorage.setItem('gamesPlayed', userData.gamesPlayed);
+            
+            document.getElementById('gamePausedOverlay').style.display = 'none';
+            drawGame();
+        }
+        
+        function generateFood() {
+            let possiblePositions = [];
+            for(let x = 0; x < tileCountX; x++) {
+                for(let y = 0; y < tileCountY; y++) {
+                    possiblePositions.push({x: x * gridSize, y: y * gridSize});
+                }
+            }
+            
+            for(let segment of snake) {
+                possiblePositions = possiblePositions.filter(pos => 
+                    !(pos.x === segment.x && pos.y === segment.y)
+                );
+            }
+            
+            if(possiblePositions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * possiblePositions.length);
+                food = possiblePositions[randomIndex];
+            }
+        }
+        
+        function gameLoop() {
+            if(isPaused || !gameStarted) return;
+            
+            if (activeBonuses.auto.active) {
+                autoPilot();
+            }
+            
+            moveSnake();
+            if(checkCollision()) {
+                gameOver();
+                return;
+            }
+            
+            drawGame();
+        }
+        
+        function moveSnake() {
+            let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            // Apply shield wall teleportation
+            if (activeBonuses.shield.active) {
+                head = handleShieldWallTeleport(head);
+            }
+            
+            snake.unshift(head);
+            
+            const ateFood = (head.x === food.x && head.y === food.y);
+            
+            if(ateFood) {
+                const points = activeBonuses.double.active ? 20 : 10;
+                score += points;
+                updateScore();
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+        
+        function checkCollision() {
+            const head = snake[0];
+            
+            // Wall collision (skip if shield is active - handled in moveSnake)
+            if(!activeBonuses.shield.active && (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height)) {
+                return true;
+            }
+            
+            // Self collision
+            for(let i = 1; i < snake.length; i++) {
+                if(head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        function drawGame() {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+            for(let x = 0; x < canvas.width; x += gridSize) {
+                for(let y = 0; y < canvas.height; y += gridSize) {
+                    ctx.strokeRect(x, y, gridSize, gridSize);
+                }
+            }
+            
+            for(let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                
+                let fillColor;
+                if (activeBonuses.auto.active) {
+                    fillColor = i === 0 ? '#2196F3' : `rgb(33, ${Math.max(100, 200 - (i * 5) - 50)}, 243)`;
+                } else if (activeBonuses.shield.active) {
+                    fillColor = i === 0 ? '#4CAF50' : `rgb(76, ${Math.max(100, 200 - (i * 5))}, 50)`;
+                } else if (activeBonuses.speed.active) {
+                    fillColor = i === 0 ? '#FF9800' : `rgb(255, ${Math.max(100, 200 - (i * 5))}, 0)`;
+                } else if (activeBonuses.double.active) {
+                    fillColor = i === 0 ? '#9C27B0' : `rgb(156, ${Math.max(100, 200 - (i * 5))}, 176)`;
+                } else {
+                    fillColor = i === 0 ? '#4CAF50' : `rgb(76, ${Math.max(100, 200 - (i * 5))}, 50)`;
+                }
+                
+                ctx.fillStyle = fillColor;
+                ctx.fillRect(segment.x + 1, segment.y + 1, gridSize - 2, gridSize - 2);
+                
+                if(i === 0) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(segment.x + 4, segment.y + 4, 3, 3);
+                    ctx.fillRect(segment.x + gridSize - 7, segment.y + 4, 3, 3);
+                }
+            }
+            
+            ctx.fillStyle = '#FF5252';
+            ctx.beginPath();
+            const centerX = food.x + gridSize/2;
+            const centerY = food.y + gridSize/2;
+            const radius = gridSize/2 - 1;
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FF8A80';
+            ctx.beginPath();
+            ctx.arc(centerX - 2, centerY - 2, radius/3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if(!touchStartX || !touchStartY || !gameStarted || isPaused || activeBonuses.auto.active) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+            
+            if(Math.abs(diffX) > Math.abs(diffY)) {
+                if(diffX > 0 && dx !== gridSize) {
+                    dx = -gridSize;
+                    dy = 0;
+                } else if(diffX < 0 && dx !== -gridSize) {
+                    dx = gridSize;
+                    dy = 0;
+                }
+            } else {
+                if(diffY > 0 && dy !== gridSize) {
+                    dx = 0;
+                    dy = -gridSize;
+                } else if(diffY < 0 && dy !== -gridSize) {
+                    dx = 0;
+                    dy = gridSize;
+                }
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+            e.preventDefault();
+        }, { passive: false });
+        
+        function gameOver() {
+            clearInterval(gameInterval);
+            gameStarted = false;
+            
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
+            if(score > userData.highScore) {
+                userData.highScore = score;
+                localStorage.setItem('snakeHighScore', userData.highScore);
+                updateLeaderboardWithScore(userData.userName, score);
+                showToast(`🎉 New High Score: ${score}!`);
+            } else {
+                showToast(`Game Over! Your score: ${score}`);
+            }
+        }
+        
+        function updateLeaderboardWithScore(playerName, playerScore) {
+            leaderboard = leaderboard.filter(entry => entry.name !== playerName);
+            
+            leaderboard.push({
+                name: playerName,
+                score: playerScore,
+                timestamp: Date.now()
+            });
+            
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 150);
+            
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+        
+        function startGame() {
+            if(gameInterval) {
+                clearInterval(gameInterval);
+            }
+            initGame();
+            isPaused = false;
+            document.getElementById('pauseBtn').textContent = 'Pause';
+            document.getElementById('gamePausedOverlay').style.display = 'none';
+            gameInterval = setInterval(gameLoop, currentGameSpeed);
+        }
+        
+        function pauseGame() {
+            if(!gameStarted) return;
+            
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
+            document.getElementById('gamePausedOverlay').style.display = isPaused ? 'flex' : 'none';
+        }
+        
+        function resetGame() {
+            clearInterval(gameInterval);
+            gameStarted = false;
+            isPaused = false;
+            
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
+            initGame();
+            document.getElementById('pauseBtn').textContent = 'Pause';
+            document.getElementById('gamePausedOverlay').style.display = 'none';
+        }
+        
+        function showSection(section) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            if(section !== 'home') {
+                // Pause game when opening store
+                if (section === 'wallet') {
+                    isInStore = true;
+                    pauseGameForStore();
+                }
+                
+                openModal(section + 'Modal');
+                
+                if(section === 'profile') {
+                    updateProfileModal();
+                } else if(section === 'wallet') {
+                    updateWalletModal();
+                } else if(section === 'leaderboard') {
+                    updateLeaderboard();
+                }
+            } else {
+                // Resume game when returning to home
+                isInStore = false;
+                resumeGameFromStore();
+            }
+        }
+        
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            
+            // Resume game when closing store modal
+            if (modalId === 'walletModal') {
+                isInStore = false;
+                resumeGameFromStore();
+            }
+        }
+        
+        function openSettings() {
+            openModal('settingsModal');
+        }
+        
+        function exitGame() {
+            if(confirm('Are you sure you want to exit?')) {
+                tg.close();
+            }
+        }
+        
+        function buyBonus(bonusType) {
+            const price = bonusPrices[bonusType];
+            
+            if (selectedWallet === 'stars') {
+                if (starsBalance < price) {
+                    alert('Not enough stars! Play more games to earn stars.');
+                    return;
+                }
+                
+                if (confirm(`Buy ${bonusType} bonus for ${price} stars?\n\nGame will be paused. Press Start or Resume to activate the bonus.`)) {
+                    starsBalance -= price;
+                    localStorage.setItem('starsBalance', starsBalance);
+                    updateStarsBalance();
+                    processPayment(bonusType, price, 'stars');
+                }
+            } else {
+                if (!tonWalletConnected) {
+                    alert('Please connect your TON wallet first!');
+                    return;
+                }
+                
+                const tonPrice = (price * 0.1).toFixed(1);
+                if (confirm(`Buy ${bonusType} bonus for ${tonPrice} TON?\n\nGame will be paused. Press Start or Resume to activate the bonus.`)) {
+                    processPayment(bonusType, tonPrice, 'TON');
+                }
+            }
+        }
+        
+        function processPayment(bonusType, price, currency) {
+            showToast(`Payment processed! ${price} ${currency} deducted.\n\nThe ${bonusType} bonus will activate when you start or resume the game.`);
+            
+            // Store bonus for activation when game starts/resumes
+            localStorage.setItem(`pendingBonus_${bonusType}`, 'true');
+            
+            // Close store modal
+            closeModal('walletModal');
+        }
+        
+        function updateProfileModal() {
+            document.getElementById('userName').textContent = userData.userName;
+            document.getElementById('userLevel').textContent = 'Level: ' + Math.floor(userData.gamesPlayed / 10 + 1);
+            document.getElementById('gamesPlayed').textContent = userData.gamesPlayed;
+            document.getElementById('profileHighScore').textContent = userData.highScore;
+            document.getElementById('telegramId').textContent = userData.telegramId;
+        }
+        
+        function updateWalletModal() {
+            updateStarsBalance();
+            updateTonWalletDisplay();
+            updateBonusPrices();
+        }
+        
+        function updateLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet! Play the game to appear here!</div>';
+            } else {
+                leaderboardList.innerHTML = leaderboard.map((player, index) => `
+                    <div class="leaderboard-item" style="${player.name === userData.userName ? 'background: #f0f8ff;' : ''}">
+                        <div class="rank">#${index + 1}</div>
+                        <div class="player-name">${player.name} ${player.name === userData.userName ? ' (You)' : ''}</div>
+                        <div class="player-score">${player.score}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function toggleSound(enabled) {
+            localStorage.setItem('soundEnabled', enabled);
+        }
+        
+        // Load saved settings
+        function loadSettings() {
+            const soundToggle = document.getElementById('soundToggle');
+            
+            // Load sound setting
+            soundToggle.checked = localStorage.getItem('soundEnabled') !== 'false';
+            
+            // Load speed setting
+            const savedSpeed = localStorage.getItem('gameSpeed');
+            if(savedSpeed) {
+                // Set active speed option
+                document.querySelectorAll('.speed-option').forEach(option => {
+                    option.classList.remove('active');
+                    if (option.textContent.toLowerCase() === savedSpeed) {
+                        option.classList.add('active');
+                    }
+                });
+                
+                setSpeed(savedSpeed);
+            } else {
+                // Set default speed
+                setSpeed('medium');
+                localStorage.setItem('gameSpeed', 'medium');
+            }
+        }
+        
         window.onload = function() {
-            initTelegramApp();
+            initTelegramUser();
+            loadSettings();
+            updateStarsBalance();
+            updateTonWalletDisplay();
+            initGame();
+            updateProfileModal();
+            updateWalletModal();
+            updateLeaderboard();
         };
 
-        // ... (Keep all other existing functions the same)
-
-        // Only showing the modified functions above to avoid repetition
-        // All other game functions (initGame, gameLoop, moveSnake, drawGame, etc.) remain unchanged
-        // from the previous implementation
-
+        // Keyboard controls for desktop
+        document.addEventListener('keydown', (e) => {
+            if(!gameStarted || isPaused || activeBonuses.auto.active) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    if(dy !== gridSize) {
+                        dx = 0;
+                        dy = -gridSize;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if(dy !== -gridSize) {
+                        dx = 0;
+                        dy = gridSize;
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if(dx !== gridSize) {
+                        dx = -gridSize;
+                        dy = 0;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if(dx !== -gridSize) {
+                        dx = gridSize;
+                        dy = 0;
+                    }
+                    break;
+                case ' ':
+                    pauseGame();
+                    break;
+            }
+        });
     </script>
 </body>
 </html>

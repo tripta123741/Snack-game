@@ -74,6 +74,7 @@
             border-radius: 15px;
             display: block;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            touch-action: none;
         }
         
         .score-container {
@@ -116,34 +117,6 @@
         .control-btn.reset {
             background: #e74c3c;
         }
-        
-        /* Mobile Controls */
-        .mobile-controls {
-            margin: 15px 0;
-            display: grid;
-            grid-template-areas: 
-                ". up ."
-                "left . right"
-                ". down .";
-            gap: 15px;
-        }
-        
-        .direction-btn {
-            width: 70px;
-            height: 70px;
-            background: rgba(255,255,255,0.3);
-            border: none;
-            border-radius: 50%;
-            font-size: 28px;
-            color: white;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .up { grid-area: up; }
-        .down { grid-area: down; }
-        .left { grid-area: left; }
-        .right { grid-area: right; }
         
         /* Bottom Navigation */
         .bottom-nav {
@@ -245,6 +218,13 @@
             margin: 10px 0;
         }
         
+        .speed-display {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
         /* Leaderboard Styles */
         .leaderboard-item {
             display: flex;
@@ -257,6 +237,19 @@
         .rank {
             font-weight: bold;
             color: #667eea;
+            width: 40px;
+        }
+        
+        .player-name {
+            flex: 1;
+            text-align: left;
+            padding: 0 10px;
+        }
+        
+        .player-score {
+            width: 60px;
+            text-align: right;
+            font-weight: bold;
         }
         
         /* Profile Styles */
@@ -287,6 +280,133 @@
             color: #27ae60;
             margin: 20px 0;
         }
+        
+        .currency-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .currency-option {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .currency-option.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .bonus-item {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .bonus-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .bonus-price {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        
+        .price-change {
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        .price-up {
+            color: #27ae60;
+        }
+        
+        .price-down {
+            color: #e74c3c;
+        }
+        
+        .buy-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+        
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .market-info {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .bonus-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .speed-indicator {
+            background: rgba(255, 193, 7, 0.9);
+        }
+
+        .shield-indicator {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .double-indicator {
+            background: rgba(156, 39, 176, 0.9);
+        }
+
+        .auto-indicator {
+            background: rgba(33, 150, 243, 0.9);
+        }
+
+        .game-paused-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 15px;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -305,21 +425,18 @@
     <!-- Game Canvas -->
     <div class="game-container">
         <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <div id="bonusIndicators"></div>
+        <div id="gamePausedOverlay" class="game-paused-overlay" style="display: none;">
+            Game Paused<br>
+            <small>Press Start or Resume to continue</small>
+        </div>
     </div>
     
     <!-- Game Controls -->
     <div class="game-controls">
-        <button class="control-btn" onclick="startGame()">Start</button>
+        <button class="control-btn" onclick="startGame()">Start Game</button>
         <button class="control-btn pause" onclick="pauseGame()" id="pauseBtn">Pause</button>
         <button class="control-btn reset" onclick="resetGame()">Reset</button>
-    </div>
-    
-    <!-- Mobile Controls -->
-    <div class="mobile-controls">
-        <button class="direction-btn up" onclick="changeDirection('up')">↑</button>
-        <button class="direction-btn left" onclick="changeDirection('left')">←</button>
-        <button class="direction-btn down" onclick="changeDirection('down')">↓</button>
-        <button class="direction-btn right" onclick="changeDirection('right')">→</button>
     </div>
     
     <!-- Bottom Navigation -->
@@ -338,7 +455,7 @@
         </div>
         <div class="nav-item" onclick="showSection('wallet')">
             <div class="nav-icon">💰</div>
-            <div class="nav-label">Wallet</div>
+            <div class="nav-label">Store</div>
         </div>
     </div>
     
@@ -358,7 +475,7 @@
             <h2 class="modal-title">👤 Profile</h2>
             <div class="profile-info">
                 <div class="avatar">👤</div>
-                <div id="userName">User Name</div>
+                <div id="userName">Loading...</div>
                 <div id="userLevel">Level: 1</div>
             </div>
             <div class="setting-item">
@@ -369,22 +486,66 @@
                 <div class="setting-label">High Score</div>
                 <div id="profileHighScore">0</div>
             </div>
+            <div class="setting-item">
+                <div class="setting-label">Telegram ID</div>
+                <div id="telegramId">Not available</div>
+            </div>
             <button class="close-modal" onclick="closeModal('profileModal')">Close</button>
         </div>
     </div>
     
     <div id="walletModal" class="modal">
         <div class="modal-content">
-            <h2 class="modal-title">💰 Wallet</h2>
-            <div class="balance" id="walletBalance">0 coins</div>
-            <div class="setting-item">
-                <div class="setting-label">Total Earned</div>
-                <div id="totalEarned">0 coins</div>
+            <h2 class="modal-title">💰 Premium Store</h2>
+            
+            <div class="currency-options">
+                <div class="currency-option active" onclick="selectCurrency('stars')">⭐ Stars</div>
+                <div class="currency-option" onclick="selectCurrency('ton')">💎 TON</div>
+                <div class="currency-option" onclick="selectCurrency('usd')">💵 USD</div>
             </div>
-            <div class="setting-item">
-                <div class="setting-label">Total Spent</div>
-                <div id="totalSpent">0 coins</div>
+            
+            <div class="balance" id="walletBalance">Connect Telegram Wallet</div>
+            
+            <div class="market-info" id="marketInfo">
+                <!-- Market information will be shown here -->
             </div>
+            
+            <h3 style="color: #333; margin: 20px 0 10px 0;">Premium Bonuses</h3>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🚀 Speed Boost</div>
+                <div style="color: #666; font-size: 14px;">Increase snake speed for 30 seconds</div>
+                <div class="bonus-price" id="speedPrice">5 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('speed')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🛡️ Shield Protection</div>
+                <div style="color: #666; font-size: 14px;">Teleport through walls for 20 seconds</div>
+                <div class="bonus-price" id="shieldPrice">10 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('shield')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">⚡ Double Points</div>
+                <div style="color: #666; font-size: 14px;">Get 2x points for 25 seconds</div>
+                <div class="bonus-price" id="doublePrice">15 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('double')">Buy Now</button>
+            </div>
+            
+            <div class="bonus-item">
+                <div style="font-weight: bold; color: #333;">🤖 Auto Pilot</div>
+                <div style="color: #666; font-size: 14px;">Snake moves automatically for 15 seconds</div>
+                <div class="bonus-price" id="autoPrice">20 ⭐</div>
+                <button class="buy-btn" onclick="buyBonus('auto')">Buy Now</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="control-btn" onclick="connectWallet()" style="background: #0088cc;">
+                    Connect Telegram Wallet
+                </button>
+            </div>
+            
             <button class="close-modal" onclick="closeModal('walletModal')">Close</button>
         </div>
     </div>
@@ -393,9 +554,9 @@
         <div class="modal-content">
             <h2 class="modal-title">⚙️ Settings</h2>
             <div class="setting-item">
-                <div class="setting-label">Game Speed</div>
-                <input type="range" min="50" max="200" value="120" class="slider" id="speedSlider" onchange="changeGameSpeed(this.value)">
-                <div id="speedValue">Medium</div>
+                <div class="setting-label">Snake Speed</div>
+                <input type="range" min="80" max="250" value="150" class="slider" id="speedSlider" oninput="updateSpeedSetting(this.value)">
+                <div class="speed-display" id="speedDisplay">Medium (150ms)</div>
             </div>
             <div class="setting-item">
                 <div class="setting-label">Sound Effects</div>
@@ -404,14 +565,7 @@
                     Enable Sound
                 </label>
             </div>
-            <div class="setting-item">
-                <div class="setting-label">Vibration</div>
-                <label>
-                    <input type="checkbox" id="vibrationToggle" checked onchange="toggleVibration(this.checked)">
-                    Enable Vibration
-                </label>
-            </div>
-            <button class="close-modal" onclick="closeModal('settingsModal')">Close</button>
+            <button class="close-modal" onclick="closeModal('settingsModal')">Save & Close</button>
         </div>
     </div>
 
@@ -436,17 +590,407 @@
         let gameInterval;
         let isPaused = false;
         let gameStarted = false;
-        
+        let baseGameSpeed = 150; // Default speed in milliseconds
+        let currentGameSpeed = 150;
+        let selectedCurrency = 'stars';
+        let isInStore = false;
+
+        // Bonus System Variables
+        let activeBonuses = {
+            speed: { active: false, timer: 0, duration: 30000 },
+            shield: { active: false, timer: 0, duration: 20000 },
+            double: { active: false, timer: 0, duration: 25000 },
+            auto: { active: false, timer: 0, duration: 15000 }
+        };
+
+        let bonusIntervals = {};
+
+        // Dynamic bonus prices with market fluctuations
+        let bonusPrices = {
+            stars: {
+                speed: 5,
+                shield: 10,
+                double: 15,
+                auto: 20,
+                base: { speed: 5, shield: 10, double: 15, auto: 20 }
+            },
+            ton: {
+                speed: 0.8,
+                shield: 1.6,
+                double: 2.4,
+                auto: 3.2,
+                base: { speed: 0.8, shield: 1.6, double: 2.4, auto: 3.2 }
+            },
+            usd: {
+                speed: 0.3,
+                shield: 0.6,
+                double: 0.9,
+                auto: 1.2,
+                base: { speed: 0.3, shield: 0.6, double: 0.9, auto: 1.2 }
+            }
+        };
+
+        // Price change history for showing trends
+        let priceHistory = {
+            stars: { change: 0, trend: 'stable' },
+            ton: { change: 0, trend: 'stable' },
+            usd: { change: 0, trend: 'stable' }
+        };
+
         // User data
         let userData = {
-            highScore: localStorage.getItem('snakeHighScore') || 0,
-            gamesPlayed: localStorage.getItem('gamesPlayed') || 0,
-            walletBalance: localStorage.getItem('walletBalance') || 100,
-            totalEarned: localStorage.getItem('totalEarned') || 100,
-            totalSpent: localStorage.getItem('totalSpent') || 0,
-            userName: 'Player' + Math.floor(Math.random() * 1000)
+            highScore: localStorage.getItem('snakeHighScore') ? parseInt(localStorage.getItem('snakeHighScore')) : 0,
+            gamesPlayed: localStorage.getItem('gamesPlayed') ? parseInt(localStorage.getItem('gamesPlayed')) : 0,
+            userName: '',
+            telegramId: '',
+            walletConnected: localStorage.getItem('walletConnected') === 'true'
         };
-        
+
+        // Leaderboard data
+        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+
+        // Initialize Telegram user data
+        function initTelegramUser() {
+            if (tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                userData.userName = user.first_name || 'Telegram User';
+                if (user.last_name) {
+                    userData.userName += ' ' + user.last_name;
+                }
+                userData.telegramId = user.id.toString();
+                
+                localStorage.setItem('telegramUserName', userData.userName);
+                localStorage.setItem('telegramUserId', userData.telegramId);
+            } else {
+                userData.userName = localStorage.getItem('telegramUserName') || 'Player' + Math.floor(Math.random() * 1000);
+                userData.telegramId = localStorage.getItem('telegramUserId') || 'Not available';
+            }
+        }
+
+        // Speed Setting System - FIXED
+        function updateSpeedSetting(sliderValue) {
+            // Convert slider value to actual game speed
+            baseGameSpeed = 300 - sliderValue; // Lower number = faster game
+            
+            // Update speed display
+            const speedDisplay = document.getElementById('speedDisplay');
+            let speedText = '';
+            
+            if (baseGameSpeed <= 100) {
+                speedText = 'Very Fast';
+            } else if (baseGameSpeed <= 150) {
+                speedText = 'Fast';
+            } else if (baseGameSpeed <= 200) {
+                speedText = 'Medium';
+            } else {
+                speedText = 'Slow';
+            }
+            
+            speedDisplay.textContent = `${speedText} (${baseGameSpeed}ms)`;
+            
+            // Apply speed change immediately if game is running
+            applyGameSpeed();
+        }
+
+        function applyGameSpeed() {
+            // Apply speed boost bonus if active
+            currentGameSpeed = activeBonuses.speed.active ? 
+                Math.max(50, baseGameSpeed - 70) : baseGameSpeed;
+            
+            // Restart game interval with new speed
+            if (gameInterval && gameStarted && !isPaused) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, currentGameSpeed);
+            }
+        }
+
+        // Shield Wall Teleportation System
+        function handleShieldWallTeleport(head) {
+            if (!activeBonuses.shield.active) return head;
+            
+            let newX = head.x;
+            let newY = head.y;
+            
+            // Left wall teleport to right
+            if (head.x < 0) {
+                newX = canvas.width - gridSize;
+            }
+            // Right wall teleport to left
+            else if (head.x >= canvas.width) {
+                newX = 0;
+            }
+            // Top wall teleport to bottom
+            else if (head.y < 0) {
+                newY = canvas.height - gridSize;
+            }
+            // Bottom wall teleport to top
+            else if (head.y >= canvas.height) {
+                newY = 0;
+            }
+            
+            return { x: newX, y: newY };
+        }
+
+        // Bonus Management System
+        function activateBonus(bonusType) {
+            if (!gameStarted) {
+                localStorage.setItem(`pendingBonus_${bonusType}`, 'true');
+                return;
+            }
+            
+            activeBonuses[bonusType].active = true;
+            activeBonuses[bonusType].timer = activeBonuses[bonusType].duration;
+            
+            // Apply bonus effects
+            switch(bonusType) {
+                case 'speed':
+                    applyGameSpeed(); // Apply speed change
+                    break;
+                case 'shield':
+                    // Shield effect applied in collision check
+                    break;
+                case 'double':
+                    // Double points applied in scoring
+                    break;
+                case 'auto':
+                    // Auto pilot logic
+                    break;
+            }
+            
+            createBonusIndicator(bonusType);
+            updateBonusTimer(bonusType);
+            
+            // Start bonus timer
+            bonusIntervals[bonusType] = setInterval(() => {
+                activeBonuses[bonusType].timer -= 100;
+                updateBonusTimer(bonusType);
+                
+                if (activeBonuses[bonusType].timer <= 0) {
+                    deactivateBonus(bonusType);
+                }
+            }, 100);
+            
+            showBonusMessage(bonusType);
+        }
+
+        function deactivateBonus(bonusType) {
+            activeBonuses[bonusType].active = false;
+            if (bonusIntervals[bonusType]) {
+                clearInterval(bonusIntervals[bonusType]);
+            }
+            
+            // Remove bonus effects
+            switch(bonusType) {
+                case 'speed':
+                    applyGameSpeed(); // Revert to base speed
+                    break;
+                case 'shield':
+                    // Shield removed automatically
+                    break;
+                case 'double':
+                    // Double points removed automatically
+                    break;
+                case 'auto':
+                    // Auto pilot deactivated
+                    break;
+            }
+            
+            removeBonusIndicator(bonusType);
+        }
+
+        function createBonusIndicator(bonusType) {
+            const indicatorsContainer = document.getElementById('bonusIndicators');
+            const indicator = document.createElement('div');
+            indicator.className = `bonus-indicator ${bonusType}-indicator`;
+            indicator.id = `indicator-${bonusType}`;
+            indicator.innerHTML = `${getBonusEmoji(bonusType)} <span id="timer-${bonusType}">${(activeBonuses[bonusType].duration/1000).toFixed(1)}s</span>`;
+            indicatorsContainer.appendChild(indicator);
+            
+            // Position indicators vertically
+            const activeIndicators = document.querySelectorAll('.bonus-indicator');
+            indicator.style.top = `${10 + (activeIndicators.length - 1) * 35}px`;
+        }
+
+        function removeBonusIndicator(bonusType) {
+            const indicator = document.getElementById(`indicator-${bonusType}`);
+            if (indicator) {
+                indicator.remove();
+            }
+            
+            // Reposition remaining indicators
+            const activeIndicators = document.querySelectorAll('.bonus-indicator');
+            activeIndicators.forEach((indicator, index) => {
+                indicator.style.top = `${10 + index * 35}px`;
+            });
+        }
+
+        function updateBonusTimer(bonusType) {
+            const timerElement = document.getElementById(`timer-${bonusType}`);
+            if (timerElement) {
+                timerElement.textContent = `${(activeBonuses[bonusType].timer/1000).toFixed(1)}s`;
+            }
+        }
+
+        function getBonusEmoji(bonusType) {
+            const emojis = {
+                speed: '🚀',
+                shield: '🛡️',
+                double: '⚡',
+                auto: '🤖'
+            };
+            return emojis[bonusType] || '🎁';
+        }
+
+        function showBonusMessage(bonusType) {
+            const messages = {
+                speed: '🚀 Speed Boost Activated! Snake moves faster for 30 seconds.',
+                shield: '🛡️ Shield Activated! You can teleport through walls for 20 seconds.',
+                double: '⚡ Double Points Activated! Get 2x points for 25 seconds.',
+                auto: '🤖 Auto Pilot Activated! Snake moves automatically for 15 seconds.'
+            };
+            alert(messages[bonusType]);
+        }
+
+        // Auto Pilot Logic
+        function autoPilot() {
+            if (!activeBonuses.auto.active || !gameStarted) return;
+            
+            const head = snake[0];
+            
+            const directions = [
+                { dx: gridSize, dy: 0 },
+                { dx: -gridSize, dy: 0 },
+                { dx: 0, dy: gridSize },
+                { dx: 0, dy: -gridSize }
+            ];
+            
+            let bestDirection = null;
+            let minDistance = Infinity;
+            
+            for (const dir of directions) {
+                const newX = head.x + dir.dx;
+                const newY = head.y + dir.dy;
+                
+                // Check if this direction causes collision
+                if (newX < 0 || newX >= canvas.width || newY < 0 || newY >= canvas.height) {
+                    continue;
+                }
+                
+                // Check self collision
+                let collision = false;
+                for (let i = 0; i < snake.length; i++) {
+                    if (newX === snake[i].x && newY === snake[i].y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                if (collision) continue;
+                
+                const distance = Math.sqrt(Math.pow(newX - food.x, 2) + Math.pow(newY - food.y, 2));
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestDirection = dir;
+                }
+            }
+            
+            if (bestDirection) {
+                dx = bestDirection.dx;
+                dy = bestDirection.dy;
+            }
+        }
+
+        // Pause game when opening store
+        function pauseGameForStore() {
+            if (gameStarted && !isPaused) {
+                isPaused = true;
+                document.getElementById('gamePausedOverlay').style.display = 'flex';
+                document.getElementById('pauseBtn').textContent = 'Resume';
+            }
+        }
+
+        // Resume game when closing store
+        function resumeGameFromStore() {
+            if (gameStarted && isPaused && !isInStore) {
+                isPaused = false;
+                document.getElementById('gamePausedOverlay').style.display = 'none';
+                document.getElementById('pauseBtn').textContent = 'Pause';
+            }
+        }
+
+        // Check for pending bonuses when game starts
+        function checkPendingBonuses() {
+            const bonuses = ['speed', 'shield', 'double', 'auto'];
+            bonuses.forEach(bonusType => {
+                if (localStorage.getItem(`pendingBonus_${bonusType}`) === 'true') {
+                    localStorage.removeItem(`pendingBonus_${bonusType}`);
+                    activateBonus(bonusType);
+                }
+            });
+        }
+
+        // Simulate market price fluctuations
+        function updateMarketPrices() {
+            const currencies = ['stars', 'ton', 'usd'];
+            const bonuses = ['speed', 'shield', 'double', 'auto'];
+            
+            currencies.forEach(currency => {
+                let totalChange = 0;
+                
+                bonuses.forEach(bonus => {
+                    const changePercent = (Math.random() * 30 - 15) / 100;
+                    const basePrice = bonusPrices[currency].base[bonus];
+                    const newPrice = basePrice * (1 + changePercent);
+                    
+                    if (currency === 'stars') {
+                        bonusPrices[currency][bonus] = Math.max(1, Math.round(newPrice));
+                    } else {
+                        bonusPrices[currency][bonus] = Math.max(0.1, Math.round(newPrice * 10) / 10);
+                    }
+                    
+                    totalChange += changePercent;
+                });
+                
+                const avgChange = (totalChange / bonuses.length) * 100;
+                priceHistory[currency].change = avgChange;
+                priceHistory[currency].trend = avgChange > 2 ? 'up' : avgChange < -2 ? 'down' : 'stable';
+            });
+            
+            if (document.getElementById('walletModal').style.display === 'flex') {
+                updateBonusPrices();
+                updateMarketInfo();
+            }
+        }
+
+        function updateMarketInfo() {
+            const marketInfo = document.getElementById('marketInfo');
+            const trends = {
+                'stars': priceHistory.stars,
+                'ton': priceHistory.ton,
+                'usd': priceHistory.usd
+            };
+            
+            let infoText = 'Market: ';
+            Object.keys(trends).forEach((currency, index) => {
+                if (index > 0) infoText += ' • ';
+                const trend = trends[currency];
+                const changeSymbol = trend.change > 0 ? '↗' : trend.change < 0 ? '↘' : '→';
+                const changeColor = trend.change > 0 ? 'price-up' : trend.change < 0 ? 'price-down' : '';
+                infoText += `${getCurrencySymbol(currency)} ${changeSymbol} <span class="${changeColor}">${trend.change.toFixed(1)}%</span>`;
+            });
+            
+            marketInfo.innerHTML = infoText;
+        }
+
+        function getCurrencySymbol(currency) {
+            const symbols = {
+                stars: '⭐',
+                ton: '💎',
+                usd: '💵'
+            };
+            return symbols[currency] || '⭐';
+        }
+
         // Initialize game
         function initGame() {
             snake = [
@@ -460,13 +1004,23 @@
             dx = gridSize;
             dy = 0;
             gameStarted = true;
+            isPaused = false;
             
-            // Update games played
+            // Reset all bonuses
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
+            // Check for pending bonuses
+            checkPendingBonuses();
+            
             userData.gamesPlayed++;
             localStorage.setItem('gamesPlayed', userData.gamesPlayed);
+            
+            document.getElementById('gamePausedOverlay').style.display = 'none';
+            drawGame();
         }
         
-        // Generate food at random position
         function generateFood() {
             let possiblePositions = [];
             for(let x = 0; x < tileCountX; x++) {
@@ -484,14 +1038,15 @@
             if(possiblePositions.length > 0) {
                 const randomIndex = Math.floor(Math.random() * possiblePositions.length);
                 food = possiblePositions[randomIndex];
-            } else {
-                gameWon();
             }
         }
         
-        // Game loop
         function gameLoop() {
             if(isPaused || !gameStarted) return;
+            
+            if (activeBonuses.auto.active) {
+                autoPilot();
+            }
             
             moveSnake();
             if(checkCollision()) {
@@ -502,42 +1057,37 @@
             drawGame();
         }
         
-        // Move snake
         function moveSnake() {
-            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            // Apply shield wall teleportation
+            if (activeBonuses.shield.active) {
+                head = handleShieldWallTeleport(head);
+            }
+            
             snake.unshift(head);
             
-            const ateFood = (
-                head.x < food.x + gridSize &&
-                head.x + gridSize > food.x &&
-                head.y < food.y + gridSize &&
-                head.y + gridSize > food.y
-            );
+            const ateFood = (head.x === food.x && head.y === food.y);
             
             if(ateFood) {
-                score += 10;
+                const points = activeBonuses.double.active ? 20 : 10;
+                score += points;
                 updateScore();
-                
-                // Add coins to wallet
-                userData.walletBalance += 5;
-                userData.totalEarned += 5;
-                localStorage.setItem('walletBalance', userData.walletBalance);
-                localStorage.setItem('totalEarned', userData.totalEarned);
-                
                 generateFood();
             } else {
                 snake.pop();
             }
         }
         
-        // Check collision
         function checkCollision() {
             const head = snake[0];
             
-            if(head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+            // Wall collision (skip if shield is active - handled in moveSnake)
+            if(!activeBonuses.shield.active && (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height)) {
                 return true;
             }
             
+            // Self collision
             for(let i = 1; i < snake.length; i++) {
                 if(head.x === snake[i].x && head.y === snake[i].y) {
                     return true;
@@ -547,7 +1097,6 @@
             return false;
         }
         
-        // Draw game
         function drawGame() {
             ctx.fillStyle = '#1a1a1a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -562,12 +1111,21 @@
             
             for(let i = 0; i < snake.length; i++) {
                 const segment = snake[i];
-                if(i === 0) {
-                    ctx.fillStyle = '#4CAF50';
+                
+                let fillColor;
+                if (activeBonuses.auto.active) {
+                    fillColor = i === 0 ? '#2196F3' : `rgb(33, ${Math.max(100, 200 - (i * 5) - 50)}, 243)`;
+                } else if (activeBonuses.shield.active) {
+                    fillColor = i === 0 ? '#4CAF50' : `rgb(76, ${Math.max(100, 200 - (i * 5))}, 50)`;
+                } else if (activeBonuses.speed.active) {
+                    fillColor = i === 0 ? '#FF9800' : `rgb(255, ${Math.max(100, 200 - (i * 5))}, 0)`;
+                } else if (activeBonuses.double.active) {
+                    fillColor = i === 0 ? '#9C27B0' : `rgb(156, ${Math.max(100, 200 - (i * 5))}, 176)`;
                 } else {
-                    const intensity = 200 - (i * 5);
-                    ctx.fillStyle = `rgb(76, ${Math.max(100, intensity)}, 50)`;
+                    fillColor = i === 0 ? '#4CAF50' : `rgb(76, ${Math.max(100, 200 - (i * 5))}, 50)`;
                 }
+                
+                ctx.fillStyle = fillColor;
                 ctx.fillRect(segment.x + 1, segment.y + 1, gridSize - 2, gridSize - 2);
                 
                 if(i === 0) {
@@ -591,70 +1149,83 @@
             ctx.fill();
         }
         
-        // Change direction
-        function changeDirection(direction) {
-            if(isPaused) return;
-            
-            const movingUp = dy === -gridSize;
-            const movingDown = dy === gridSize;
-            const movingLeft = dx === -gridSize;
-            const movingRight = dx === gridSize;
-            
-            switch(direction) {
-                case 'up':
-                    if(!movingDown) {
-                        dx = 0;
-                        dy = -gridSize;
-                    }
-                    break;
-                case 'down':
-                    if(!movingUp) {
-                        dx = 0;
-                        dy = gridSize;
-                    }
-                    break;
-                case 'left':
-                    if(!movingRight) {
-                        dx = -gridSize;
-                        dy = 0;
-                    }
-                    break;
-                case 'right':
-                    if(!movingLeft) {
-                        dx = gridSize;
-                        dy = 0;
-                    }
-                    break;
-            }
-        }
+        let touchStartX = 0;
+        let touchStartY = 0;
         
-        // Game over
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if(!touchStartX || !touchStartY || !gameStarted || isPaused || activeBonuses.auto.active) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+            
+            if(Math.abs(diffX) > Math.abs(diffY)) {
+                if(diffX > 0 && dx !== gridSize) {
+                    dx = -gridSize;
+                    dy = 0;
+                } else if(diffX < 0 && dx !== -gridSize) {
+                    dx = gridSize;
+                    dy = 0;
+                }
+            } else {
+                if(diffY > 0 && dy !== gridSize) {
+                    dx = 0;
+                    dy = -gridSize;
+                } else if(diffY < 0 && dy !== -gridSize) {
+                    dx = 0;
+                    dy = gridSize;
+                }
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+            e.preventDefault();
+        }, { passive: false });
+        
         function gameOver() {
             clearInterval(gameInterval);
             gameStarted = false;
             
-            // Update high score
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
             if(score > userData.highScore) {
                 userData.highScore = score;
                 localStorage.setItem('snakeHighScore', userData.highScore);
+                updateLeaderboardWithScore(userData.userName, score);
             }
             
             alert(`Game Over! Your score: ${score}`);
         }
         
-        // Game won
-        function gameWon() {
-            clearInterval(gameInterval);
-            gameStarted = false;
-            alert(`Congratulations! You won! Final score: ${score}`);
+        function updateLeaderboardWithScore(playerName, playerScore) {
+            leaderboard = leaderboard.filter(entry => entry.name !== playerName);
+            
+            leaderboard.push({
+                name: playerName,
+                score: playerScore,
+                timestamp: Date.now()
+            });
+            
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 150);
+            
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
         }
         
-        // Update score display
         function updateScore() {
             document.getElementById('score').textContent = score;
         }
         
-        // Start game
         function startGame() {
             if(gameInterval) {
                 clearInterval(gameInterval);
@@ -662,40 +1233,47 @@
             initGame();
             isPaused = false;
             document.getElementById('pauseBtn').textContent = 'Pause';
-            gameInterval = setInterval(gameLoop, 120);
+            document.getElementById('gamePausedOverlay').style.display = 'none';
+            gameInterval = setInterval(gameLoop, currentGameSpeed);
         }
         
-        // Pause game
         function pauseGame() {
             if(!gameStarted) return;
             
             isPaused = !isPaused;
             document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
+            document.getElementById('gamePausedOverlay').style.display = isPaused ? 'flex' : 'none';
         }
         
-        // Reset game
         function resetGame() {
             clearInterval(gameInterval);
             gameStarted = false;
             isPaused = false;
+            
+            Object.keys(activeBonuses).forEach(bonus => {
+                deactivateBonus(bonus);
+            });
+            
             initGame();
-            drawGame();
             document.getElementById('pauseBtn').textContent = 'Pause';
+            document.getElementById('gamePausedOverlay').style.display = 'none';
         }
         
-        // Navigation functions
         function showSection(section) {
-            // Update active nav item
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
             
-            // Show corresponding modal
             if(section !== 'home') {
+                // Pause game when opening store
+                if (section === 'wallet') {
+                    isInStore = true;
+                    pauseGameForStore();
+                }
+                
                 openModal(section + 'Modal');
                 
-                // Update modal content
                 if(section === 'profile') {
                     updateProfileModal();
                 } else if(section === 'wallet') {
@@ -703,6 +1281,10 @@
                 } else if(section === 'leaderboard') {
                     updateLeaderboard();
                 }
+            } else {
+                // Resume game when returning to home
+                isInStore = false;
+                resumeGameFromStore();
             }
         }
         
@@ -712,6 +1294,12 @@
         
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+            
+            // Resume game when closing store modal
+            if (modalId === 'walletModal') {
+                isInStore = false;
+                resumeGameFromStore();
+            }
         }
         
         function openSettings() {
@@ -724,145 +1312,147 @@
             }
         }
         
-        // Update modals
+        function selectCurrency(currency) {
+            selectedCurrency = currency;
+            
+            document.querySelectorAll('.currency-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            updateBonusPrices();
+            updateMarketInfo();
+        }
+        
+        function updateBonusPrices() {
+            const symbols = {
+                stars: '⭐',
+                ton: '💎 TON',
+                usd: '💵 USD'
+            };
+            
+            const formatPrice = (price, currency) => {
+                if (currency === 'stars') {
+                    return Math.round(price);
+                } else {
+                    return price.toFixed(1);
+                }
+            };
+            
+            document.getElementById('speedPrice').innerHTML = 
+                `${formatPrice(bonusPrices[selectedCurrency].speed, selectedCurrency)} ${symbols[selectedCurrency]}`;
+            document.getElementById('shieldPrice').innerHTML = 
+                `${formatPrice(bonusPrices[selectedCurrency].shield, selectedCurrency)} ${symbols[selectedCurrency]}`;
+            document.getElementById('doublePrice').innerHTML = 
+                `${formatPrice(bonusPrices[selectedCurrency].double, selectedCurrency)} ${symbols[selectedCurrency]}`;
+            document.getElementById('autoPrice').innerHTML = 
+                `${formatPrice(bonusPrices[selectedCurrency].auto, selectedCurrency)} ${symbols[selectedCurrency]}`;
+        }
+        
+        function connectWallet() {
+            userData.walletConnected = true;
+            localStorage.setItem('walletConnected', 'true');
+            
+            updateWalletModal();
+            alert('Telegram Wallet connected successfully!');
+        }
+        
+        function buyBonus(bonusType) {
+            if (!userData.walletConnected) {
+                alert('Please connect your Telegram Wallet first!');
+                return;
+            }
+            
+            const price = bonusPrices[selectedCurrency][bonusType];
+            const currencyName = selectedCurrency === 'stars' ? 'Stars' : 
+                               selectedCurrency === 'ton' ? 'TON' : 'USD';
+            
+            if (confirm(`Buy ${bonusType} bonus for ${price} ${currencyName}?\n\nGame will be paused. Press Start or Resume to activate the bonus.`)) {
+                processPayment(bonusType, price, selectedCurrency);
+            }
+        }
+        
+        function processPayment(bonusType, price, currency) {
+            alert(`Payment processed! ${price} ${currency} deducted.\n\nThe ${bonusType} bonus will activate when you start or resume the game.`);
+            
+            // Store bonus for activation when game starts/resumes
+            localStorage.setItem(`pendingBonus_${bonusType}`, 'true');
+            
+            // Close store modal
+            closeModal('walletModal');
+        }
+        
         function updateProfileModal() {
             document.getElementById('userName').textContent = userData.userName;
             document.getElementById('userLevel').textContent = 'Level: ' + Math.floor(userData.gamesPlayed / 10 + 1);
             document.getElementById('gamesPlayed').textContent = userData.gamesPlayed;
             document.getElementById('profileHighScore').textContent = userData.highScore;
+            document.getElementById('telegramId').textContent = userData.telegramId;
         }
         
         function updateWalletModal() {
-            document.getElementById('walletBalance').textContent = userData.walletBalance + ' coins';
-            document.getElementById('totalEarned').textContent = userData.totalEarned + ' coins';
-            document.getElementById('totalSpent').textContent = userData.totalSpent + ' coins';
+            if (userData.walletConnected) {
+                document.getElementById('walletBalance').textContent = 'Wallet Connected ✓';
+                document.getElementById('walletBalance').style.color = '#27ae60';
+            } else {
+                document.getElementById('walletBalance').textContent = 'Connect Telegram Wallet';
+                document.getElementById('walletBalance').style.color = '#e74c3c';
+            }
+            updateBonusPrices();
+            updateMarketInfo();
         }
         
         function updateLeaderboard() {
             const leaderboardList = document.getElementById('leaderboardList');
-            const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
             
-            if(leaderboard.length === 0) {
-                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet!</div>';
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet! Play the game to appear here!</div>';
             } else {
-                leaderboardList.innerHTML = leaderboard.slice(0, 10).map((player, index) => `
-                    <div class="leaderboard-item">
+                leaderboardList.innerHTML = leaderboard.map((player, index) => `
+                    <div class="leaderboard-item" style="${player.name === userData.userName ? 'background: #f0f8ff;' : ''}">
                         <div class="rank">#${index + 1}</div>
-                        <div>${player.name}</div>
-                        <div>${player.score}</div>
+                        <div class="player-name">${player.name} ${player.name === userData.userName ? ' (You)' : ''}</div>
+                        <div class="player-score">${player.score}</div>
                     </div>
                 `).join('');
             }
         }
         
-        // Settings functions
-        function changeGameSpeed(value) {
-            const speedValue = document.getElementById('speedValue');
-            let speedText = '';
-            let intervalSpeed = 0;
-            
-            if(value < 80) {
-                speedText = 'Fast';
-                intervalSpeed = 80;
-            } else if(value < 120) {
-                speedText = 'Medium';
-                intervalSpeed = 120;
-            } else {
-                speedText = 'Slow';
-                intervalSpeed = 160;
-            }
-            
-            speedValue.textContent = speedText;
-            
-            if(gameInterval) {
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, intervalSpeed);
-            }
-        }
-        
         function toggleSound(enabled) {
-            // Sound implementation would go here
-            console.log('Sound:', enabled ? 'ON' : 'OFF');
+            localStorage.setItem('soundEnabled', enabled);
         }
         
-        function toggleVibration(enabled) {
-            // Vibration implementation would go here
-            console.log('Vibration:', enabled ? 'ON' : 'OFF');
-        }
-        
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if(isPaused || !gameStarted) return;
+        // Load saved settings
+        function loadSettings() {
+            const soundToggle = document.getElementById('soundToggle');
+            const speedSlider = document.getElementById('speedSlider');
             
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                case 'W':
-                    changeDirection('up');
-                    break;
-                case 'ArrowDown':
-                case 's':
-                case 'S':
-                    changeDirection('down');
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                case 'A':
-                    changeDirection('left');
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                case 'D':
-                    changeDirection('right');
-                    break;
-            }
-        });
-        
-        // Touch controls for mobile
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            e.preventDefault();
-        }, { passive: false });
-        
-        canvas.addEventListener('touchend', (e) => {
-            if(!touchStartX || !touchStartY || !gameStarted || isPaused) return;
+            // Load sound setting
+            soundToggle.checked = localStorage.getItem('soundEnabled') !== 'false';
             
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
-            
-            if(Math.abs(diffX) > Math.abs(diffY)) {
-                if(diffX > 0) {
-                    changeDirection('left');
-                } else {
-                    changeDirection('right');
-                }
+            // Load speed setting
+            const savedSpeed = localStorage.getItem('gameSpeed');
+            if(savedSpeed) {
+                speedSlider.value = savedSpeed;
+                updateSpeedSetting(savedSpeed);
             } else {
-                if(diffY > 0) {
-                    changeDirection('up');
-                } else {
-                    changeDirection('down');
-                }
+                // Set default speed
+                speedSlider.value = 150;
+                updateSpeedSetting(150);
+                localStorage.setItem('gameSpeed', 150);
             }
-            
-            touchStartX = 0;
-            touchStartY = 0;
-            e.preventDefault();
-        }, { passive: false });
+        }
         
-        // Initialize on load
         window.onload = function() {
+            initTelegramUser();
+            loadSettings();
             initGame();
-            drawGame();
             updateProfileModal();
             updateWalletModal();
             updateLeaderboard();
+            
+            setInterval(updateMarketPrices, 30000);
+            updateMarketPrices();
         };
     </script>
 </body>
